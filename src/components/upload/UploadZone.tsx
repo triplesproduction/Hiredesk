@@ -124,24 +124,41 @@ export default function UploadZone() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         {/* Left Column: Dropzone and Queue */}
         <div className="lg:col-span-2 flex flex-col gap-4">
-          {/* Drop zone — compact on mobile, spacious on desktop */}
+
+          {/* Hidden file input — linked via id so label can trigger it natively on mobile */}
+          <input
+            ref={inputRef}
+            id="resume-file-input"
+            type="file"
+            accept=".pdf,application/pdf"
+            multiple
+            className="hidden"
+            onChange={e => e.target.files && addFiles(e.target.files)}
+          />
+
+          {/* Drop zone — on desktop supports drag & drop, on mobile the label triggers native picker */}
           <div
             className={clsx(
-              "border-2 border-dashed rounded-2xl p-6 sm:p-8 lg:p-12 text-center cursor-pointer transition-all duration-200",
+              "border-2 border-dashed rounded-2xl p-6 sm:p-8 lg:p-12 text-center transition-all duration-200",
               isDrag ? "border-white/40 bg-[var(--glass-2)]" : "border-[var(--border-2)] bg-[var(--glass)] hover:border-white/30 hover:bg-[var(--glass-2)]"
             )}
             onDragOver={e => { e.preventDefault(); setIsDrag(true); }}
             onDragLeave={() => setIsDrag(false)}
             onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
           >
             <div className="text-4xl sm:text-5xl mb-3 sm:mb-4 opacity-30">📄</div>
-            <div className="text-base sm:text-lg font-bold mb-2">Drop resumes here</div>
-            <div className="text-xs sm:text-sm text-[var(--text-3)] mb-4 sm:mb-5">PDF files only · Bulk upload supported · Instant parsing</div>
-            <Btn variant="ghost" size="sm" onClick={e => e.stopPropagation()}>Browse Files</Btn>
-            <input ref={inputRef} type="file" accept=".pdf" multiple className="hidden"
-              onChange={e => e.target.files && addFiles(e.target.files)} />
+            <div className="text-base sm:text-lg font-bold mb-1">Drop resumes here</div>
+            <div className="text-xs sm:text-sm text-[var(--text-3)] mb-5">PDF files only · Bulk upload supported · Instant parsing</div>
+
+            {/* Label-based button — most reliable cross-platform file picker trigger */}
+            <label
+              htmlFor="resume-file-input"
+              className="inline-flex items-center gap-2 cursor-pointer font-semibold uppercase tracking-wide rounded-xl border text-sm px-4 py-2.5 transition-all duration-150 bg-[var(--glass-2)] text-[var(--text)] border-[var(--border-2)] hover:bg-[var(--glass-3)] hover:border-[var(--border-3)] active:scale-95 select-none"
+            >
+              📁 Browse / Upload Files
+            </label>
           </div>
+
 
           {/* Queue */}
           {queue.length > 0 && (
