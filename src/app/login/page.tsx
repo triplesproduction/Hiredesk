@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -8,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -25,6 +28,10 @@ export default function LoginPage() {
       const data = await res.json();
       
       if (data.success) {
+        if (data.session) {
+          // Set session on the client-side supabase instance
+          await supabase.auth.setSession(data.session);
+        }
         localStorage.setItem("tsp_auth", "1");
         router.push("/");
       } else {
@@ -169,14 +176,24 @@ export default function LoginPage() {
               <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
                 Security Password
               </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-xl text-sm px-4 py-3.5 outline-none transition-all placeholder:text-zinc-700 bg-zinc-950/40 border border-white/5 text-white focus:border-white/20 focus:bg-zinc-900/40"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl text-sm pl-4 pr-12 py-3.5 outline-none transition-all placeholder:text-zinc-700 bg-zinc-950/40 border border-white/5 text-white focus:border-white/20 focus:bg-zinc-900/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             {error && (
