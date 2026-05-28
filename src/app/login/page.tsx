@@ -200,30 +200,7 @@ export default function LoginPage() {
               </button>
             </div>
           </form>
-
-          {/* Secure Admin Demo Credentials Guide */}
-          <div className="mt-6 p-4 rounded-xl bg-zinc-950/50 border border-white/[0.02] anim-stagger-demo">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs">🔑</span>
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Access Node Keys</p>
-            </div>
-            <div className="flex flex-col gap-1 font-mono text-xs text-zinc-400">
-              <div className="flex justify-between">
-                <span>Email:</span>
-                <span className="select-all text-zinc-300">admin@triplesproduction.com</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Password:</span>
-                <span className="select-all text-zinc-300">TSP@2024</span>
-              </div>
-            </div>
-          </div>
         </div>
-
-        {/* Private Node Footer */}
-        <p className="text-center text-[10px] text-zinc-600 font-semibold tracking-widest uppercase">
-          HIREDESK · PRIVATE STAFFING GATEWAY
-        </p>
       </div>
     </div>
   );
