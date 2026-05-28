@@ -28,27 +28,26 @@ function extractSkills(text: string, roleId: string): string[] {
   return Array.from(new Set([...found, ...generic])).slice(0, 8);
 }
 
+const TITLE_STOP_WORDS = /\b(executive|manager|developer|designer|editor|marketer|cameraman|consultant|engineer|intern|resume|cv|profile|page|curriculum|vitae|specialist|analyst|lead|director|architect|builder|associate|student|graduate|fresher|professional)\b/i;
+
 function extractName(text: string, filename: string): string {
   // Strategy 1: Explicit "Name:" label (most reliable)
   const labelMatch = text.match(/(?:^|\n)\s*(?:Full\s+)?Name\s*[:\-]\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,3})/im);
   if (labelMatch?.[1]) {
     const n = labelMatch[1].replace(/\s+/g, " ").trim();
-    if (n.length > 3 && n.length < 50) return n;
+    if (n.length > 3 && n.length < 50 && !TITLE_STOP_WORDS.test(n)) return n;
   }
 
   // Strategy 2: All-caps name block (common in professionally formatted resumes)
-  // e.g. "JOHN MICHAEL DOE" on its own line or at start
   const capsMatch = text.match(/(?:^|\n)\s*([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\s*(?:\n|$)/m);
   if (capsMatch?.[1]) {
     const n = capsMatch[1].replace(/\s+/g, " ").trim();
-    // Must look like a name, not a section header like "WORK EXPERIENCE"
-    if (n.length > 3 && n.length < 40 && n.split(" ").length <= 4) {
+    if (n.length > 3 && n.length < 40 && n.split(" ").length <= 4 && !TITLE_STOP_WORDS.test(n)) {
       return n.split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
     }
   }
 
-  // Strategy 3: First line of text — pdfjs often puts the name at the very top
-  // Grab the first few lines and check if the first segment looks like a name
+  // Strategy 3: First line segment of text
   const firstLines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
   const skipKeywords = /resume|cv|curriculum|vitae|summary|profile|page/i;
   for (const line of firstLines.slice(0, 6)) {
@@ -61,7 +60,8 @@ function extractName(text: string, filename: string): string {
     const words = firstSegment.split(/\s+/);
     if (words.length >= 2 && words.length <= 4
       && words.every(w => /^[A-Z][a-zA-Z'\-]*\.?$/.test(w))
-      && firstSegment.length > 3 && firstSegment.length < 40) {
+      && firstSegment.length > 3 && firstSegment.length < 40
+      && !TITLE_STOP_WORDS.test(firstSegment)) {
       return firstSegment;
     }
   }
@@ -70,16 +70,16 @@ function extractName(text: string, filename: string): string {
   const titleMatch = text.slice(0, 300).match(/([A-Z][a-z]{1,15}\s+[A-Z][a-z]{1,15}(?:\s+[A-Z][a-z]{1,15})?)/);
   if (titleMatch?.[1]) {
     const n = titleMatch[1].replace(/\s+/g, " ").trim();
-    // Reject common section headers that also happen to be Titlecase
     const STOP = /^(Work Experience|Personal Information|Career Objective|Contact Details|Education Qualifications|Skills Summary)$/i;
-    if (!STOP.test(n) && n.length > 3 && n.length < 40) return n;
+    if (!STOP.test(n) && n.length > 3 && n.length < 40 && !TITLE_STOP_WORDS.test(n)) return n;
   }
 
   // Strategy 5: Filename fallback — "John_Doe_Resume.pdf" → "John Doe"
   const fn = filename.replace(/\.(pdf|PDF)$/, "").replace(/[_\-\.]/g, " ").replace(/resume|cv|curriculum vitae/gi, "").trim();
   const parts = fn.split(/\s+/).filter(p => p.length > 1 && /^[A-Za-z]/.test(p));
   if (parts.length >= 2) {
-    return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
+    const candidateName = parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
+    if (!TITLE_STOP_WORDS.test(candidateName)) return candidateName;
   }
 
   return "";
@@ -122,10 +122,41 @@ function extractExperience(text: string): string {
   return "Not specified";
 }
 
-function extractGender(text: string): string {
-  const lower = text.toLowerCase();
-  if (/\b(female|woman|she\/her|f\b)\b/.test(lower)) return "Female";
-  if (/\b(male|man|he\/him|m\b)\b/.test(lower)) return "Male";
+function extractGender(text: string, name: string): string {
+  const lowerText = text.toLowerCase();
+  
+  // 1. Explicit mention in text
+  const explicitMatch = lowerText.match(/\b(?:gender|sex)\s*[:\-]\s*(female|male|f|m)\b/i);
+  if (explicitMatch) {
+    const g = explicitMatch[1].toLowerCase();
+    if (g === "female" || g === "f") return "Female";
+    if (g === "male" || g === "m") return "Male";
+  }
+
+  // 2. Pronoun checks
+  const sheCount = (lowerText.match(/\b(she|her|hers)\b/g) || []).length;
+  const heCount = (lowerText.match(/\b(he|him|his)\b/g) || []).length;
+  if (sheCount > heCount + 2) return "Female";
+  if (heCount > sheCount + 2) return "Male";
+
+  // 3. Indian name heuristics
+  if (name) {
+    const firstName = name.split(/\s+/)[0].toLowerCase();
+    const femaleNames = ["priya","sneha","neha","ananya","pooja","riya","meera","shruti","zara","tanya","ayesha","simran","deepika","mitali","aditi","kavya","anushka","snehal","swati","sakshi","shreya","rashi","kirti","tripti","divya","kajal","isha","ekta","sheetal","rashmi","poornima","preeti","sonia","monika","payal"];
+    const maleNames = ["aarav","rohit","arjun","vikram","raj","dev","ishaan","siddharth","aditya","manish","omar","nikhil","dhruv","ratan","vivek","amit","abhishek","rahul","sachin","saurabh","gaurav","pankaj","sanjay","anil","sunil","vijay","raju","ram","shyam","harsh","aman","kunal","yash"];
+    
+    if (femaleNames.includes(firstName)) return "Female";
+    if (maleNames.includes(firstName)) return "Male";
+    
+    // Ending in i, ee, ya, a are highly likely female in India
+    if (/(i|ee|ya|a)$/.test(firstName)) {
+      const maleSuffixExceptions = ["aditya","yash","amit","sharma","gupta","kumar","singh","verma","mehta","shah","joshi","nair","iyer","reddy","bose","khanna","malhotra","kapoor","desai","pillai","rao","agarwal"];
+      if (!maleSuffixExceptions.includes(firstName)) {
+        return "Female";
+      }
+    }
+  }
+
   return "Not specified";
 }
 
@@ -151,7 +182,7 @@ export async function parseResumeFile(file: File, roles: Role[]): Promise<Candid
   const city = extractCity(text);
   const education = extractEducation(text);
   const exp = extractExperience(text);
-  const gender = extractGender(text);
+  const gender = extractGender(text, name);
   const age = extractAge(text);
   const skills = extractSkills(text, roleId);
 
