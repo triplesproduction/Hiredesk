@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", weight: ["40
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", weight: ["300","400","500"] });
 
 export const metadata: Metadata = {
-  title: "TSP HireDesk",
+  title: "HireDesk",
   description: "Applicant Tracking System — Triple S Production",
 };
 

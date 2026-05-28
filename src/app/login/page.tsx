@@ -28,10 +28,10 @@ export default function LoginPage() {
       <div className="w-full max-w-sm px-4">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-black font-black text-xl tracking-tighter">TSP</span>
+          <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <img src="/logo.png" alt="HireDesk Logo" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">TSP HireDesk</h1>
+          <h1 className="text-2xl font-bold tracking-tight">HireDesk</h1>
           <p className="text-sm text-[var(--text-3)] mt-1 font-medium">Triple S Production · Admin Portal</p>
         </div>
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-[var(--text-3)] mt-5">TSP HireDesk v1.0 · Triple S Production</p>
+        <p className="text-center text-xs text-[var(--text-3)] mt-5">HireDesk v1.0 · Triple S Production</p>
       </div>
     </div>
   );

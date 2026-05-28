@@ -25,11 +25,11 @@ export default function TopBar() {
     <header className="h-[54px] flex items-center justify-between px-5 flex-shrink-0 z-40"
       style={{ background: "rgba(10,10,10,0.95)", borderBottom: "1px solid var(--border)", backdropFilter: "blur(20px)" }}>
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
-          <span className="text-black font-black text-xs tracking-tighter">TSP</span>
+        <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+          <img src="/logo.png" alt="HireDesk Logo" className="w-full h-full object-cover" />
         </div>
         <div>
-          <div className="text-sm font-bold tracking-tight leading-tight">TSP HireDesk</div>
+          <div className="text-sm font-bold tracking-tight leading-tight">HireDesk</div>
           <div className="text-[10px] text-[var(--text-3)] font-medium leading-tight">Triple S Production</div>
         </div>
       </div>
