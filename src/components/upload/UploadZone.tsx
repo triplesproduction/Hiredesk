@@ -121,13 +121,13 @@ export default function UploadZone() {
 
   return (
     <div className="w-full animate-fade-in">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         {/* Left Column: Dropzone and Queue */}
         <div className="lg:col-span-2 flex flex-col gap-4">
-          {/* Drop zone */}
+          {/* Drop zone — compact on mobile, spacious on desktop */}
           <div
             className={clsx(
-              "border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-200",
+              "border-2 border-dashed rounded-2xl p-6 sm:p-8 lg:p-12 text-center cursor-pointer transition-all duration-200",
               isDrag ? "border-white/40 bg-[var(--glass-2)]" : "border-[var(--border-2)] bg-[var(--glass)] hover:border-white/30 hover:bg-[var(--glass-2)]"
             )}
             onDragOver={e => { e.preventDefault(); setIsDrag(true); }}
@@ -135,9 +135,9 @@ export default function UploadZone() {
             onDrop={handleDrop}
             onClick={() => inputRef.current?.click()}
           >
-            <div className="text-5xl mb-4 opacity-30">📄</div>
-            <div className="text-lg font-bold mb-2">Drop resumes here</div>
-            <div className="text-sm text-[var(--text-3)] mb-5">PDF files only · Bulk upload supported · Instant parsing</div>
+            <div className="text-4xl sm:text-5xl mb-3 sm:mb-4 opacity-30">📄</div>
+            <div className="text-base sm:text-lg font-bold mb-2">Drop resumes here</div>
+            <div className="text-xs sm:text-sm text-[var(--text-3)] mb-4 sm:mb-5">PDF files only · Bulk upload supported · Instant parsing</div>
             <Btn variant="ghost" size="sm" onClick={e => e.stopPropagation()}>Browse Files</Btn>
             <input ref={inputRef} type="file" accept=".pdf" multiple className="hidden"
               onChange={e => e.target.files && addFiles(e.target.files)} />
@@ -146,7 +146,7 @@ export default function UploadZone() {
           {/* Queue */}
           {queue.length > 0 && (
             <div className="mt-2">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <span className="text-sm font-semibold text-[var(--text-2)]">
                   {queue.length} file{queue.length !== 1 ? "s" : ""}
                   {doneCount > 0 && <span className="text-[var(--green)] ml-2">· {doneCount} done</span>}
@@ -157,7 +157,7 @@ export default function UploadZone() {
                     <Btn variant="primary" size="sm" onClick={processAll} disabled={processing}>
                       {processing
                         ? <span className="flex items-center gap-2"><span className="w-3 h-3 border-2 border-black/30 border-t-black rounded-full animate-spin" />Parsing…</span>
-                        : `▶ Parse ${waitCount} Resume${waitCount !== 1 ? "s" : ""}`}
+                        : `▶ Parse ${waitCount}`}
                     </Btn>
                   )}
                 </div>
@@ -216,12 +216,12 @@ export default function UploadZone() {
           )}
         </div>
 
-        {/* Right Column: Sidebar Guidelines & Mechanics */}
+        {/* Right Column: Sidebar Guidelines — full width on mobile, sidebar on desktop */}
         <div className="flex flex-col gap-4">
           {/* How it works */}
-          <div className="p-5 rounded-xl flex flex-col" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>
-            <div className="text-sm font-semibold mb-3">How parsing works</div>
-            <div className="flex flex-col gap-4">
+          <div className="p-4 sm:p-5 rounded-xl flex flex-col" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>
+            <div className="text-sm sm:text-base font-semibold mb-3">How parsing works</div>
+            <div className="flex flex-col gap-3 sm:gap-4">
               {[
                 ["⚡", "Instant Processing", "All PDFs processed in parallel using client-side concurrency control."],
                 ["🔍", "Smart Extraction", "Auto-detects candidate names, emails, phones, locations, gender, and experience levels."],
@@ -231,8 +231,8 @@ export default function UploadZone() {
                 <div key={title} className="flex gap-3">
                   <span className="text-lg flex-shrink-0">{icon}</span>
                   <div>
-                    <div className="text-xs font-semibold text-white">{title}</div>
-                    <div className="text-[11px] text-[var(--text-3)] mt-0.5 leading-relaxed">{desc}</div>
+                    <div className="text-xs sm:text-sm font-semibold text-white">{title}</div>
+                    <div className="text-xs text-[var(--text-3)] mt-0.5 leading-relaxed">{desc}</div>
                   </div>
                 </div>
               ))}
@@ -240,12 +240,12 @@ export default function UploadZone() {
           </div>
 
           {/* Secure Cloud Storage */}
-          <div className="p-5 rounded-xl flex flex-col" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>
+          <div className="p-4 sm:p-5 rounded-xl flex flex-col" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>
             <div className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest mb-2">Cloud Integration</div>
-            <div className="text-xs text-[var(--text-2)] leading-relaxed mb-3">
+            <div className="text-xs sm:text-sm text-[var(--text-2)] leading-relaxed mb-3">
               Parsed resumes are automatically uploaded directly to your Supabase Storage bucket <strong>resumes</strong>.
             </div>
-            <div className="flex items-center gap-2 p-2.5 rounded-lg text-[10px] font-mono" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
+            <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs font-mono" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)" }}>
               <span className="text-[var(--green)]">●</span> Supabase Bucket Active
             </div>
           </div>

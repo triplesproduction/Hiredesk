@@ -30,8 +30,17 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 14px;
-  overflow: hidden;
+  font-size: 15px;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Prevent layout scroll on desktop, allow on mobile */
+@media (min-width: 1024px) {
+  html, body { overflow: hidden; }
+}
+@media (max-width: 1023px) {
+  html { overflow-x: hidden; }
+  body { overflow-x: hidden; }
 }
 
 body::before {

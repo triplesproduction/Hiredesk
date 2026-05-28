@@ -37,19 +37,21 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      {/* Header — stacks vertically on mobile so button never collides with text */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-[22px] font-extrabold tracking-tight">Dashboard</h1>
-          <div className="font-mono text-[10px] text-[var(--text-3)] mt-1 uppercase tracking-widest">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Dashboard</h1>
+          <div className="font-mono text-[11px] sm:text-xs text-[var(--text-3)] mt-1 uppercase tracking-widest">
             Triple S Production · Hiring Round Overview
           </div>
         </div>
-        <Btn variant="primary" onClick={() => router.push("/upload")}>+ Upload Resumes</Btn>
+        <Btn variant="primary" size="md" onClick={() => router.push("/upload")} className="self-start sm:self-auto flex-shrink-0">
+          + Upload Resumes
+        </Btn>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <StatCard label="Total Candidates" value={total} delta="Active pipeline" deltaUp />
         <StatCard label="Approved" value={approved} delta={`${total > 0 ? Math.round(approved / total * 100) : 0}% approval rate`} deltaUp={approved > 0} />
         <StatCard label="Avg Score" value={avgScore} delta={avgScore >= 70 ? "Strong pool" : avgScore >= 50 ? "Decent pool" : "Needs more resumes"} />
@@ -62,8 +64,8 @@ export default function DashboardPage() {
           const cnt = candidates.filter(c => c.status === s).length;
           return (
             <button key={s} onClick={() => goFiltered(s)}
-              className="glass p-4 text-left hover:bg-[var(--glass-2)] hover:border-[var(--border-2)] transition-all duration-200 rounded-xl">
-              <div className="text-[22px] sm:text-[26px] font-extrabold tracking-tight mb-2">{cnt}</div>
+              className="glass p-4 text-left hover:bg-[var(--glass-2)] hover:border-[var(--border-2)] transition-all duration-200 rounded-xl active:scale-95">
+              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">{cnt}</div>
               <StatusBadge status={s} />
             </button>
           );
@@ -72,16 +74,16 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* Top candidates */}
-        <div className="glass p-5 rounded-xl">
-          <div className="text-[13px] font-bold mb-4 tracking-tight">Top Candidates</div>
+        <div className="glass p-4 sm:p-5 rounded-xl">
+          <div className="text-sm sm:text-base font-bold mb-4 tracking-tight">Top Candidates</div>
           {topCandidates.length === 0
-            ? <div className="font-mono text-[10px] text-[var(--text-3)] py-4 text-center">No candidates yet</div>
+            ? <div className="font-mono text-xs text-[var(--text-3)] py-4 text-center">No candidates yet</div>
             : topCandidates.map((c, i) => (
-              <div key={c.id} className="flex items-center gap-3 py-2.5 border-b border-[var(--border)] last:border-0">
-                <div className="font-mono text-[9px] text-[var(--text-3)] w-4 flex-shrink-0">{i + 1}</div>
+              <div key={c.id} className="flex items-center gap-3 py-3 border-b border-[var(--border)] last:border-0">
+                <div className="font-mono text-xs text-[var(--text-3)] w-5 flex-shrink-0">{i + 1}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[12px] font-semibold truncate">{c.name}</div>
-                  <div className="font-mono text-[9px] text-[var(--text-3)] uppercase tracking-wider">{c.roleName}</div>
+                  <div className="text-sm font-semibold truncate">{c.name}</div>
+                  <div className="font-mono text-[10px] text-[var(--text-3)] uppercase tracking-wider">{c.roleName}</div>
                 </div>
                 <ScoreBadge score={c.score.total} />
               </div>
@@ -89,15 +91,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Role breakdown */}
-        <div className="glass p-5 rounded-xl">
-          <div className="text-[13px] font-bold mb-4 tracking-tight">By Role</div>
+        <div className="glass p-4 sm:p-5 rounded-xl">
+          <div className="text-sm sm:text-base font-bold mb-4 tracking-tight">By Role</div>
           {roleBreakdown.length === 0
-            ? <div className="font-mono text-[10px] text-[var(--text-3)] py-4 text-center">No data yet</div>
+            ? <div className="font-mono text-xs text-[var(--text-3)] py-4 text-center">No data yet</div>
             : roleBreakdown.slice(0, 8).map(r => (
               <div key={r.id} className="mb-3">
-                <div className="flex justify-between text-[11px] mb-1">
+                <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-[var(--text-2)] truncate mr-2">{r.name}</span>
-                  <span className="font-mono text-[9px] text-[var(--text-3)] flex-shrink-0">{r.count}</span>
+                  <span className="font-mono text-[10px] text-[var(--text-3)] flex-shrink-0">{r.count}</span>
                 </div>
                 <div className="h-[2px] bg-[var(--glass-3)] rounded-full">
                   <div className="h-full bg-white/70 rounded-full transition-all duration-700"
@@ -109,20 +111,20 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent activity */}
-      <div className="glass p-5 rounded-xl">
+      <div className="glass p-4 sm:p-5 rounded-xl">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-[13px] font-bold tracking-tight">Recent Candidates</div>
+          <div className="text-sm sm:text-base font-bold tracking-tight">Recent Candidates</div>
           <Btn variant="outline" size="sm" onClick={() => router.push("/candidates")}>View All →</Btn>
         </div>
         <div className="flex flex-col gap-2">
           {recentCandidates.map(c => (
-            <div key={c.id} className="flex items-center gap-3 py-2.5 border-b border-[var(--border)] last:border-0">
-              <div className="w-7 h-7 rounded-lg bg-[var(--glass-3)] border border-[var(--border-2)] flex items-center justify-center font-bold text-[11px] flex-shrink-0">
+            <div key={c.id} className="flex items-center gap-3 py-3 border-b border-[var(--border)] last:border-0">
+              <div className="w-9 h-9 rounded-xl bg-[var(--glass-3)] border border-[var(--border-2)] flex items-center justify-center font-bold text-sm flex-shrink-0">
                 {c.name[0]}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-semibold">{c.name}</div>
-                <div className="font-mono text-[9px] text-[var(--text-3)]">{c.roleName} · {c.city} · {c.appliedAt}</div>
+                <div className="text-sm font-semibold">{c.name}</div>
+                <div className="font-mono text-[10px] text-[var(--text-3)]">{c.roleName} · {c.city} · {c.appliedAt}</div>
               </div>
               <ScoreBadge score={c.score.total} />
               <StatusBadge status={c.status} />
