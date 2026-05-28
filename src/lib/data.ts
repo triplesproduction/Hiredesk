@@ -117,9 +117,7 @@ const today = () => new Date().toLocaleDateString("en-IN",{year:"numeric",month:
 const LH = (refSuffix: string) => `
 <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #111;padding-bottom:16px;margin-bottom:28px">
   <div>
-    <div><!--LOGO--></div>
-    <div style="font-family:Arial,sans-serif;font-size:22pt;font-weight:800;letter-spacing:-0.5px;color:#111;line-height:1">Triple S Production</div>
-    <div style="font-family:Arial,sans-serif;font-size:8pt;color:#666;text-transform:uppercase;letter-spacing:2px;margin-top:4px">Production · Marketing · Digital</div>
+    <div style="height:56px;display:flex;align-items:center;margin-bottom:8px"><!--LOGO--></div>
     <div style="font-family:Arial,sans-serif;font-size:7.5pt;color:#999;margin-top:2px">Rajdhani Towers, First floor, Rajwada, Satara · info@triplesproduction.com</div>
   </div>
   <div style="text-align:right;font-family:Arial,sans-serif;font-size:9pt;color:#555">
@@ -148,13 +146,13 @@ const SIG = `
 </div>`;
 
 function clause(num: string, title: string, body: string) {
-  return `<p style="margin:0 0 4px 0"><strong style="font-family:Arial,sans-serif;font-size:10.5pt">${num}. ${title}</strong></p><p style="margin:0 0 16px 0;font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;text-align:justify">${body}</p>`;
+  return `<p style="margin:0 0 4px 0"><strong style="font-family:Arial,sans-serif;font-size:10.5pt">${num}. ${title}</strong></p><p style="margin:0 0 16px 0;font-family:Arial,sans-serif;font-size:10.5pt;text-align:justify">${body}</p>`;
 }
 
 function empTemplate() {
   return LH("EMP") + `
 <h2 style="font-family:Arial,sans-serif;font-size:14pt;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;text-align:center;margin:0 0 24px 0;padding-bottom:10px;border-bottom:1px solid #e0e0e0">Employment Agreement</h2>
-<p style="font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Employment Agreement (<strong>"Agreement"</strong>) is entered into as of <strong>${today()}</strong>, between <strong>Triple S Production</strong>, a duly registered agency having its principal place of business in Satara, Maharashtra (<strong>"Company"</strong>), and <strong>[CANDIDATE NAME]</strong> (<strong>"Employee"</strong>), collectively referred to as the <strong>"Parties."</strong></p>
+<p style="font-family:Arial,sans-serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Employment Agreement (<strong>"Agreement"</strong>) is entered into as of <strong>${today()}</strong>, between <strong>Triple S Production</strong>, a duly registered agency having its principal place of business in Satara, Maharashtra (<strong>"Company"</strong>), and <strong>[CANDIDATE NAME]</strong> (<strong>"Employee"</strong>), collectively referred to as the <strong>"Parties."</strong></p>
 ${clause("1","Position & Duties","The Employee is appointed to the position of <strong>[ROLE]</strong>. The Employee shall perform all duties as directed by management, report to the designated supervisor, and represent the Company professionally at all times.")}
 ${clause("2","Commencement & Probation","Employment commences on <strong>[START DATE]</strong>. The Employee shall be on probation for a period of <strong>[NOTICE PERIOD]</strong>. Confirmation of employment is subject to satisfactory performance and conduct during this period.")}
 ${clause("3","Compensation","The Employee shall receive a monthly gross salary of <strong>[AMOUNT ₹]</strong>, payable on or before the last working day of each month, subject to applicable TDS and statutory deductions. Salary revisions are at the Company's discretion and subject to annual performance review.")}
@@ -165,14 +163,14 @@ ${clause("7","Intellectual Property","All work products, creative works, code, d
 ${clause("8","Code of Conduct","The Employee shall maintain professional standards of conduct, avoid conflicts of interest, and comply with all Company policies. Misconduct, including but not limited to dishonesty, insubordination, or breach of confidentiality, may result in disciplinary action including termination.")}
 ${clause("9","Termination","Either Party may terminate this Agreement with <strong>[NOTICE PERIOD]</strong> written notice. The Company reserves the right to terminate immediately in cases of gross misconduct, fraud, or material breach of this Agreement, without notice or compensation in lieu thereof.")}
 ${clause("10","Governing Law","This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes arising hereunder shall be subject to the exclusive jurisdiction of courts in Satara, Maharashtra.")}
-<p style="font-family:'Times New Roman',Georgia,serif;font-size:10pt;color:#555;margin-top:24px;text-align:justify"><em>This Agreement constitutes the entire agreement between the Parties and supersedes all prior understandings. Any amendments must be made in writing and signed by both Parties.</em></p>
+<p style="font-family:Arial,sans-serif;font-size:10pt;color:#555;margin-top:24px;text-align:justify"><em>This Agreement constitutes the entire agreement between the Parties and supersedes all prior understandings. Any amendments must be made in writing and signed by both Parties.</em></p>
 ${SIG}`;
 }
 
 function internTemplate() {
   return LH("INT") + `
 <h2 style="font-family:Arial,sans-serif;font-size:14pt;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;text-align:center;margin:0 0 24px 0;padding-bottom:10px;border-bottom:1px solid #e0e0e0">Internship Agreement</h2>
-<p style="font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Internship Agreement is entered into between <strong>Triple S Production</strong> (<strong>"Company"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Intern"</strong>) for the position of <strong>[ROLE]</strong>.</p>
+<p style="font-family:Arial,sans-serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Internship Agreement is entered into between <strong>Triple S Production</strong> (<strong>"Company"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Intern"</strong>) for the position of <strong>[ROLE]</strong>.</p>
 ${clause("1","Duration","This internship shall be for a period of <strong>[X months]</strong>, commencing on <strong>[START DATE]</strong> and concluding on <strong>[END DATE]</strong>, unless terminated earlier in accordance with this Agreement.")}
 ${clause("2","Stipend","The Intern shall receive a monthly stipend of <strong>[AMOUNT ₹]</strong>, payable at month-end, subject to a minimum attendance of 80% and satisfactory performance.")}
 ${clause("3","Scope of Work","The Intern will assist the team in projects related to <strong>[ROLE]</strong>, gaining practical industry experience under the supervision and guidance of the assigned team lead.")}
@@ -186,7 +184,7 @@ ${SIG}`;
 function ndasTemplate() {
   return LH("NDA") + `
 <h2 style="font-family:Arial,sans-serif;font-size:14pt;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;text-align:center;margin:0 0 24px 0;padding-bottom:10px;border-bottom:1px solid #e0e0e0">Non-Disclosure Agreement</h2>
-<p style="font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Non-Disclosure Agreement (<strong>"Agreement"</strong>) is entered into as of <strong>${today()}</strong>, between <strong>Triple S Production</strong> (<strong>"Disclosing Party"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Receiving Party"</strong>).</p>
+<p style="font-family:Arial,sans-serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Non-Disclosure Agreement (<strong>"Agreement"</strong>) is entered into as of <strong>${today()}</strong>, between <strong>Triple S Production</strong> (<strong>"Disclosing Party"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Receiving Party"</strong>).</p>
 ${clause("1","Definition of Confidential Information","\"Confidential Information\" means any non-public information disclosed by Triple S Production, including but not limited to: client identities and data, business strategies, pricing structures, creative briefs, campaign performance data, financial information, employee details, software, and internal processes.")}
 ${clause("2","Obligations of Receiving Party","The Receiving Party shall: (a) hold all Confidential Information in strict confidence; (b) not disclose it to any third party without prior written consent; (c) use it solely for the purpose of their engagement with the Company; and (d) apply the same degree of protection as applied to their own confidential information, but no less than reasonable care.")}
 ${clause("3","Exclusions","This Agreement does not apply to information that: (a) is or becomes publicly known through no breach of this Agreement; (b) was rightfully known before disclosure; or (c) is required to be disclosed by law or court order, provided prompt written notice is given to the Disclosing Party.")}
@@ -199,7 +197,7 @@ ${SIG}`;
 function freelanceTemplate() {
   return LH("FRL") + `
 <h2 style="font-family:Arial,sans-serif;font-size:14pt;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;text-align:center;margin:0 0 24px 0;padding-bottom:10px;border-bottom:1px solid #e0e0e0">Freelance / Project Contract</h2>
-<p style="font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Contract is entered into between <strong>Triple S Production</strong> (<strong>"Client"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Contractor"</strong>) for services as <strong>[ROLE]</strong>, effective <strong>[START DATE]</strong>.</p>
+<p style="font-family:Arial,sans-serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Contract is entered into between <strong>Triple S Production</strong> (<strong>"Client"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Contractor"</strong>) for services as <strong>[ROLE]</strong>, effective <strong>[START DATE]</strong>.</p>
 ${clause("1","Scope of Work","The Contractor agrees to provide the following services: [DESCRIBE DELIVERABLES]. The scope is defined in the attached project brief, which forms an integral part of this Contract.")}
 ${clause("2","Payment Terms","Total project fee: <strong>[AMOUNT ₹]</strong>. Payment schedule: 50% advance upon signing; 50% upon final delivery and approval. Payments shall be made via bank transfer within 7 working days of due date.")}
 ${clause("3","Timeline & Milestones","The project shall be completed within the agreed timeline from the date of advance receipt. Delays caused by the Client shall extend the timeline accordingly.")}
@@ -213,7 +211,7 @@ ${SIG}`;
 function ipTemplate() {
   return LH("IPA") + `
 <h2 style="font-family:Arial,sans-serif;font-size:14pt;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;text-align:center;margin:0 0 24px 0;padding-bottom:10px;border-bottom:1px solid #e0e0e0">Intellectual Property Assignment Agreement</h2>
-<p style="font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Agreement is entered into between <strong>Triple S Production</strong> (<strong>"Assignee"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Assignor"</strong>) as of <strong>${today()}</strong>.</p>
+<p style="font-family:Arial,sans-serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Agreement is entered into between <strong>Triple S Production</strong> (<strong>"Assignee"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Assignor"</strong>) as of <strong>${today()}</strong>.</p>
 ${clause("1","Assignment of Rights","The Assignor hereby irrevocably assigns, transfers, and conveys to the Assignee all rights, title, and interest — worldwide and in perpetuity — in all intellectual property created in connection with their engagement, including creative works, software, designs, content, strategies, trademarks, and any other materials (<strong>'Works'</strong>).")}
 ${clause("2","Moral Rights Waiver","To the fullest extent permitted by applicable law, the Assignor irrevocably waives all moral rights in the Works, including the right of attribution and the right to object to modifications.")}
 ${clause("3","Pre-existing Works","Any intellectual property created by the Assignor prior to engagement and incorporated into deliverables is licensed (not assigned) to the Assignee on a royalty-free, perpetual, non-exclusive basis.")}
@@ -226,7 +224,7 @@ ${SIG}`;
 function modelTemplate() {
   return LH("MDL") + `
 <h2 style="font-family:Arial,sans-serif;font-size:14pt;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;text-align:center;margin:0 0 24px 0;padding-bottom:10px;border-bottom:1px solid #e0e0e0">Model Release & Usage Agreement</h2>
-<p style="font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Agreement is entered into between <strong>Triple S Production</strong> (<strong>"Company"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Model"</strong>) as of <strong>${today()}</strong>.</p>
+<p style="font-family:Arial,sans-serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Agreement is entered into between <strong>Triple S Production</strong> (<strong>"Company"</strong>) and <strong>[CANDIDATE NAME]</strong> (<strong>"Model"</strong>) as of <strong>${today()}</strong>.</p>
 ${clause("1","Grant of Rights","The Model grants the Company and its clients a worldwide, royalty-free, irrevocable, perpetual licence to use the Model's name, image, likeness, voice, and performance in all photographs, videos, and multimedia content produced during the engagement, for commercial, editorial, advertising, digital, print, and social media purposes.")}
 ${clause("2","Shoot Details","Shoot Date: [START DATE] | Location: [WORK LOCATION] | Usage Category: Commercial/Editorial")}
 ${clause("3","Compensation","Agreed shoot fee: <strong>[AMOUNT ₹]</strong>, payable within 7 working days of shoot completion, subject to satisfactory delivery of contracted services.")}

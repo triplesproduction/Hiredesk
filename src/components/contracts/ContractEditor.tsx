@@ -60,7 +60,9 @@ export default function ContractEditor({ contract, onBack }: Props) {
   }, [syncBody]);
 
   function handlePrint() {
-    const logo = logoUrl ? `<img src="${logoUrl}" style="height:56px;object-fit:contain;margin-bottom:8px;" alt="Logo"/>` : "";
+    const logo = logoUrl 
+      ? `<img src="${logoUrl}" style="height:56px;object-fit:contain;" alt="Logo"/>` 
+      : `<div style="font-family:Arial,sans-serif;font-size:22pt;font-weight:800;letter-spacing:-0.5px;color:#111;line-height:1">Triple S Production</div><div style="font-family:Arial,sans-serif;font-size:8pt;color:#666;text-transform:uppercase;letter-spacing:2px;margin-top:4px">Production · Marketing · Digital</div>`;
     const sign = signUrl ? `<img src="${signUrl}" style="height:96px;object-fit:contain;" alt="Signature"/>` : "";
     const content = editorRef.current?.innerHTML ?? body;
 
@@ -76,7 +78,7 @@ export default function ContractEditor({ contract, onBack }: Props) {
       <title>${contract.name} — Triple S Production</title>
       <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Times New Roman', Georgia, serif; max-width: 210mm; margin: 0 auto; padding: 20mm 25mm; color: #111; font-size: 11pt; line-height: 1.85; }
+        body { font-family: Arial, Helvetica, sans-serif; max-width: 210mm; margin: 0 auto; padding: 20mm 25mm; color: #111; font-size: 11pt; line-height: 1.85; }
         h1,h2,h3 { font-family: Arial, Helvetica, sans-serif; }
         h2 { font-size: 14pt; border-bottom: 2px solid #111; padding-bottom: 6px; margin: 18px 0 12px; }
         h3 { font-size: 11pt; margin: 14px 0 6px; }
@@ -84,7 +86,11 @@ export default function ContractEditor({ contract, onBack }: Props) {
         .letterhead { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 16px; margin-bottom: 24px; }
         .sig-block { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 48px; }
         .sig-line { border-top: 1px solid #333; padding-top: 6px; font-size: 10pt; }
-        @media print { @page { size: A4; margin: 20mm; } body { padding: 0; } .no-print{display:none!important} }
+        @media print {
+          @page { size: A4; margin: 0mm; }
+          body { margin: 0; padding: 20mm 25mm; }
+          .no-print { display: none !important; }
+        }
       </style>
     </head><body>${finalContent}
     <script>window.onload=()=>{setTimeout(()=>{window.print();},300);}<\/script>
@@ -210,7 +216,7 @@ export default function ContractEditor({ contract, onBack }: Props) {
             style={{
               background: "#fff",
               color: "#111",
-              fontFamily: "'Times New Roman', Georgia, serif",
+              fontFamily: "Arial, Helvetica, sans-serif",
               fontSize: "11pt",
               lineHeight: "1.85",
               padding: "16mm 20mm",
