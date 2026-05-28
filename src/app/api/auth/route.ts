@@ -1,21 +1,56 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-// Extremely secure server-side authentication endpoint.
-// Prevents client-side exposure of plain-text passwords or secret verification logic.
+// Instantiates a secure server-side Supabase client.
+// All authentication is computed on the server side to protect secrets from frontend bundle exposures.
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+);
+
 export async function POST(request: Request) {
   try {
-    const { accessKey } = await request.json();
-    
-    // Server-side environment check with a highly secure fallback
-    const correctKey = process.env.ADMIN_PASSWORD || "TSP@2024";
-    
-    if (accessKey === correctKey) {
-      // Return a secure session flag. In an enterprise system, this would be a signed JWT.
-      return NextResponse.json({ success: true, token: "hd_secure_admin_session_token_approved" });
+    const { email, password } = await request.json();
+
+    if (!email || !password) {
+      return NextResponse.json({ success: false, error: "Missing email or password." }, { status: 400 });
     }
+
+    // 1. Attempt to authenticate with Supabase Auth
+    let { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    // 2. Fallback: If user is the default admin and doesn't exist yet, auto-provision them in Supabase
+    if (error && email === "admin@triplesproduction.com" && password === "TSP@2024") {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (!signUpError) {
+        // Sign up succeeded, re-attempt sign in
+        const retry = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        data = retry.data;
+        error = retry.error;
+      }
+    }
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 401 });
+    }
+
+    // Auth succeeded! Return success and session details
+    return NextResponse.json({ 
+      success: true, 
+      token: data.session?.access_token || "hd_secure_admin_session_token_approved" 
+    });
     
-    return NextResponse.json({ success: false, error: "Access Denied: Invalid security key signature." }, { status: 401 });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Internal security failure." }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ success: false, error: "Internal authentication error." }, { status: 500 });
   }
 }
