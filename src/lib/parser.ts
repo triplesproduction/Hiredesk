@@ -31,17 +31,17 @@ function extractSkills(text: string, roleId: string): string[] {
 const TITLE_STOP_WORDS = /\b(executive|manager|developer|designer|editor|marketer|cameraman|consultant|engineer|intern|resume|cv|profile|page|curriculum|vitae|specialist|analyst|lead|director|architect|builder|associate|student|graduate|fresher|professional)\b/i;
 
 function extractName(text: string, filename: string): string {
-  // Strategy 1: Explicit "Name:" label (most reliable)
-  const labelMatch = text.match(/(?:^|\n)\s*(?:Full\s+)?Name\s*[:\-]\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,3})/im);
-  if (labelMatch?.[1]) {
-    const n = labelMatch[1].replace(/\s+/g, " ").trim();
+  // Strategy 1: Explicit "Name:" label (most reliable, global search)
+  const labelMatches = Array.from(text.matchAll(/\b(?:Full\s+)?Name\s*[:\-]\s*([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,3})/img));
+  for (const match of labelMatches) {
+    const n = match[1].replace(/\s+/g, " ").trim();
     if (n.length > 3 && n.length < 50 && !TITLE_STOP_WORDS.test(n)) return n;
   }
 
-  // Strategy 2: All-caps name block (common in professionally formatted resumes)
-  const capsMatch = text.match(/(?:^|\n)\s*([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\s*(?:\n|$)/m);
-  if (capsMatch?.[1]) {
-    const n = capsMatch[1].replace(/\s+/g, " ").trim();
+  // Strategy 2: All-caps name block (common in professionally formatted resumes, global search)
+  const capsMatches = Array.from(text.slice(0, 600).matchAll(/\b([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\b/g));
+  for (const match of capsMatches) {
+    const n = match[1].replace(/\s+/g, " ").trim();
     if (n.length > 3 && n.length < 40 && n.split(" ").length <= 4 && !TITLE_STOP_WORDS.test(n)) {
       return n.split(" ").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
     }
@@ -66,20 +66,34 @@ function extractName(text: string, filename: string): string {
     }
   }
 
-  // Strategy 4: Titlecase "Firstname Lastname" anywhere in first 300 chars
-  const titleMatch = text.slice(0, 300).match(/([A-Z][a-z]{1,15}\s+[A-Z][a-z]{1,15}(?:\s+[A-Z][a-z]{1,15})?)/);
-  if (titleMatch?.[1]) {
-    const n = titleMatch[1].replace(/\s+/g, " ").trim();
+  // Strategy 4: Titlecase "Firstname Lastname" anywhere in first 400 chars (global search)
+  const titleMatches = Array.from(text.slice(0, 400).matchAll(/\b([A-Z][a-z]{1,15}\s+[A-Z][a-z]{1,15}(?:\s+[A-Z][a-z]{1,15})?)\b/g));
+  for (const match of titleMatches) {
+    const n = match[1].replace(/\s+/g, " ").trim();
     const STOP = /^(Work Experience|Personal Information|Career Objective|Contact Details|Education Qualifications|Skills Summary)$/i;
     if (!STOP.test(n) && n.length > 3 && n.length < 40 && !TITLE_STOP_WORDS.test(n)) return n;
   }
 
-  // Strategy 5: Filename fallback — "John_Doe_Resume.pdf" → "John Doe"
-  const fn = filename.replace(/\.(pdf|PDF)$/, "").replace(/[_\-\.]/g, " ").replace(/resume|cv|curriculum vitae/gi, "").trim();
-  const parts = fn.split(/\s+/).filter(p => p.length > 1 && /^[A-Za-z]/.test(p));
-  if (parts.length >= 2) {
-    const candidateName = parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
-    if (!TITLE_STOP_WORDS.test(candidateName)) return candidateName;
+  // Strategy 5: Filename fallback — strip UUID and find valid name parts
+  // e.g. "fee7ddb2-dc57-48fd-ab08-4ab686a54297-Mitali_Marketing Profile.pdf" -> "Mitali"
+  let cleanFn = filename.replace(/\.(pdf|PDF)$/, "");
+  // Strip UUID prefix (36 chars hex with dashes)
+  cleanFn = cleanFn.replace(/^[a-f0-9\-]{30,}\-?/i, "");
+  
+  const fnParts = cleanFn.split(/[_\-\.\s]+/).filter(Boolean);
+  const cleanParts = fnParts.filter(p => p.length > 1 && /^[A-Za-z]/.test(p) && !TITLE_STOP_WORDS.test(p));
+  
+  if (cleanParts.length > 0) {
+    return cleanParts.slice(0, 3).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
+  }
+
+  // Strategy 6: Email prefix fallback — "mitalikumkar110@gmail.com" -> "Mitali Kumkar"
+  const email = extractEmail(text);
+  if (email) {
+    const prefix = email.split("@")[0].replace(/[0-9\-_.]+/g, " ").trim();
+    if (prefix.length > 2) {
+      return prefix.split(/\s+/).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
+    }
   }
 
   return "";
