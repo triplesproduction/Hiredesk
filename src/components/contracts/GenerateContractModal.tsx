@@ -25,7 +25,7 @@ export default function GenerateContractModal({ contract, preselectedCandidateId
     refNo: `TSP/${new Date().getFullYear()}/${Math.floor(Math.random() * 9000 + 1000)}`,
     noticePeriod: "30 days",
     probation: "90 days",
-    location: "Mumbai",
+    location: "Satara",
     additionalTerms: "",
   });
 
@@ -167,7 +167,7 @@ export default function GenerateContractModal({ contract, preselectedCandidateId
             </div>
             <div>
               <label className={labelCls}>Work Location</label>
-              <input className={inputCls} style={inputStyle} placeholder="e.g. Mumbai / Remote"
+              <input className={inputCls} style={inputStyle} placeholder="e.g. Satara / Remote"
                 value={form.location} onChange={e => set("location", e.target.value)} />
             </div>
           </div>

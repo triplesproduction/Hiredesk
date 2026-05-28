@@ -61,7 +61,7 @@ export default function ContractEditor({ contract, onBack }: Props) {
 
   function handlePrint() {
     const logo = logoUrl ? `<img src="${logoUrl}" style="height:56px;object-fit:contain;margin-bottom:8px;" alt="Logo"/>` : "";
-    const sign = signUrl ? `<img src="${signUrl}" style="height:48px;object-fit:contain;margin-top:8px;" alt="Signature"/>` : "";
+    const sign = signUrl ? `<img src="${signUrl}" style="height:96px;object-fit:contain;" alt="Signature"/>` : "";
     const content = editorRef.current?.innerHTML ?? body;
 
     // Inject logo + signature into printed output

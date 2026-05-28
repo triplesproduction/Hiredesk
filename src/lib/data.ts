@@ -120,7 +120,7 @@ const LH = (refSuffix: string) => `
     <div><!--LOGO--></div>
     <div style="font-family:Arial,sans-serif;font-size:22pt;font-weight:800;letter-spacing:-0.5px;color:#111;line-height:1">Triple S Production</div>
     <div style="font-family:Arial,sans-serif;font-size:8pt;color:#666;text-transform:uppercase;letter-spacing:2px;margin-top:4px">Production · Marketing · Digital</div>
-    <div style="font-family:Arial,sans-serif;font-size:7.5pt;color:#999;margin-top:2px">Mumbai, India · info@triplesproduction.com</div>
+    <div style="font-family:Arial,sans-serif;font-size:7.5pt;color:#999;margin-top:2px">Rajdhani Towers, First floor, Rajwada, Satara · info@triplesproduction.com</div>
   </div>
   <div style="text-align:right;font-family:Arial,sans-serif;font-size:9pt;color:#555">
     <div style="font-weight:700;color:#111;font-size:10pt">Ref: TSP/${refSuffix}/[REF NO]</div>
@@ -131,14 +131,15 @@ const LH = (refSuffix: string) => `
 const SIG = `
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;margin-top:60px;padding-top:24px;border-top:1px solid #ddd">
   <div>
-    <div><!--SIGN--></div>
-    <div style="border-top:1.5px solid #333;padding-top:8px;margin-top:32px">
+    <div style="height:96px;display:flex;align-items:flex-end;margin-bottom:8px"><!--SIGN--></div>
+    <div style="border-top:1.5px solid #333;padding-top:8px">
       <div style="font-family:Arial,sans-serif;font-weight:700;font-size:10pt">Authorized Signatory</div>
       <div style="font-family:Arial,sans-serif;font-size:9pt;color:#555;margin-top:2px">Triple S Production</div>
     </div>
   </div>
   <div>
-    <div style="border-top:1.5px solid #333;padding-top:8px;margin-top:64px">
+    <div style="height:96px;display:flex;align-items:flex-end;margin-bottom:8px"></div>
+    <div style="border-top:1.5px solid #333;padding-top:8px">
       <div style="font-family:Arial,sans-serif;font-weight:700;font-size:10pt">Candidate Signature</div>
       <div style="font-family:Arial,sans-serif;font-size:9pt;color:#555;margin-top:2px">[CANDIDATE NAME]</div>
       <div style="font-family:Arial,sans-serif;font-size:8pt;color:#999;margin-top:2px">Date: _______________</div>
@@ -153,7 +154,7 @@ function clause(num: string, title: string, body: string) {
 function empTemplate() {
   return LH("EMP") + `
 <h2 style="font-family:Arial,sans-serif;font-size:14pt;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;text-align:center;margin:0 0 24px 0;padding-bottom:10px;border-bottom:1px solid #e0e0e0">Employment Agreement</h2>
-<p style="font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Employment Agreement (<strong>"Agreement"</strong>) is entered into as of <strong>${today()}</strong>, between <strong>Triple S Production</strong>, a duly registered agency having its principal place of business in Mumbai, Maharashtra (<strong>"Company"</strong>), and <strong>[CANDIDATE NAME]</strong> (<strong>"Employee"</strong>), collectively referred to as the <strong>"Parties."</strong></p>
+<p style="font-family:'Times New Roman',Georgia,serif;font-size:10.5pt;margin-bottom:20px;text-align:justify">This Employment Agreement (<strong>"Agreement"</strong>) is entered into as of <strong>${today()}</strong>, between <strong>Triple S Production</strong>, a duly registered agency having its principal place of business in Satara, Maharashtra (<strong>"Company"</strong>), and <strong>[CANDIDATE NAME]</strong> (<strong>"Employee"</strong>), collectively referred to as the <strong>"Parties."</strong></p>
 ${clause("1","Position & Duties","The Employee is appointed to the position of <strong>[ROLE]</strong>. The Employee shall perform all duties as directed by management, report to the designated supervisor, and represent the Company professionally at all times.")}
 ${clause("2","Commencement & Probation","Employment commences on <strong>[START DATE]</strong>. The Employee shall be on probation for a period of <strong>[NOTICE PERIOD]</strong>. Confirmation of employment is subject to satisfactory performance and conduct during this period.")}
 ${clause("3","Compensation","The Employee shall receive a monthly gross salary of <strong>[AMOUNT ₹]</strong>, payable on or before the last working day of each month, subject to applicable TDS and statutory deductions. Salary revisions are at the Company's discretion and subject to annual performance review.")}
@@ -163,7 +164,7 @@ ${clause("6","Confidentiality","The Employee agrees to hold in strict confidence
 ${clause("7","Intellectual Property","All work products, creative works, code, designs, content, and deliverables produced by the Employee in the course of employment shall be the exclusive property of Triple S Production. The Employee hereby assigns all such rights to the Company.")}
 ${clause("8","Code of Conduct","The Employee shall maintain professional standards of conduct, avoid conflicts of interest, and comply with all Company policies. Misconduct, including but not limited to dishonesty, insubordination, or breach of confidentiality, may result in disciplinary action including termination.")}
 ${clause("9","Termination","Either Party may terminate this Agreement with <strong>[NOTICE PERIOD]</strong> written notice. The Company reserves the right to terminate immediately in cases of gross misconduct, fraud, or material breach of this Agreement, without notice or compensation in lieu thereof.")}
-${clause("10","Governing Law","This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes arising hereunder shall be subject to the exclusive jurisdiction of courts in Mumbai, Maharashtra.")}
+${clause("10","Governing Law","This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes arising hereunder shall be subject to the exclusive jurisdiction of courts in Satara, Maharashtra.")}
 <p style="font-family:'Times New Roman',Georgia,serif;font-size:10pt;color:#555;margin-top:24px;text-align:justify"><em>This Agreement constitutes the entire agreement between the Parties and supersedes all prior understandings. Any amendments must be made in writing and signed by both Parties.</em></p>
 ${SIG}`;
 }
@@ -191,7 +192,7 @@ ${clause("2","Obligations of Receiving Party","The Receiving Party shall: (a) ho
 ${clause("3","Exclusions","This Agreement does not apply to information that: (a) is or becomes publicly known through no breach of this Agreement; (b) was rightfully known before disclosure; or (c) is required to be disclosed by law or court order, provided prompt written notice is given to the Disclosing Party.")}
 ${clause("4","Duration","This Agreement shall remain in force for a period of <strong>2 (two) years</strong> from the date of signing and shall survive termination of any employment or contractual relationship between the Parties.")}
 ${clause("5","Remedies","The Receiving Party acknowledges that any breach of this Agreement may cause irreparable harm, entitling the Disclosing Party to seek equitable relief, including injunction, in addition to any other legal remedies available.")}
-${clause("6","Governing Law","This Agreement shall be governed by the laws of India and subject to the jurisdiction of courts in Mumbai, Maharashtra.")}
+${clause("6","Governing Law","This Agreement shall be governed by the laws of India and subject to the jurisdiction of courts in Satara, Maharashtra.")}
 ${SIG}`;
 }
 
@@ -218,7 +219,7 @@ ${clause("2","Moral Rights Waiver","To the fullest extent permitted by applicabl
 ${clause("3","Pre-existing Works","Any intellectual property created by the Assignor prior to engagement and incorporated into deliverables is licensed (not assigned) to the Assignee on a royalty-free, perpetual, non-exclusive basis.")}
 ${clause("4","Cooperation","The Assignor agrees to execute any additional instruments and take all actions reasonably requested by the Assignee to effectuate, record, or perfect the rights granted herein.")}
 ${clause("5","Consideration","This assignment is made in consideration of the remuneration paid to the Assignor under their employment or freelance agreement with Triple S Production.")}
-${clause("6","Governing Law","This Agreement is governed by Indian copyright law and the jurisdiction of courts in Mumbai, Maharashtra.")}
+${clause("6","Governing Law","This Agreement is governed by Indian copyright law and the jurisdiction of courts in Satara, Maharashtra.")}
 ${SIG}`;
 }
 
@@ -232,7 +233,7 @@ ${clause("3","Compensation","Agreed shoot fee: <strong>[AMOUNT ₹]</strong>, pa
 ${clause("4","Exclusivity","This agreement is [NON-EXCLUSIVE / EXCLUSIVE for X months] within the [CATEGORY] category. During an exclusivity period, the Model agrees not to appear in competing campaigns for brands in the same category.")}
 ${clause("5","Model's Representations","The Model represents that: (a) they are of legal age; (b) they have full capacity to enter this Agreement; (c) no prior commitments conflict with this Agreement; and (d) the Company has the right to use the content as described herein without additional consent or payment.")}
 ${clause("6","Credits","Model credits will be provided where editorially appropriate, at the Company's sole discretion.")}
-${clause("7","Governing Law","This Agreement is governed by the laws of India, subject to the jurisdiction of courts in Mumbai, Maharashtra.")}
+${clause("7","Governing Law","This Agreement is governed by the laws of India, subject to the jurisdiction of courts in Satara, Maharashtra.")}
 ${SIG}`;
 }
 
