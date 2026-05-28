@@ -18,7 +18,7 @@ export default function BulkDeleteModal({ open, onClose }: Props) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} className="w-[400px]">
+    <Modal open={open} onClose={onClose} className="max-w-sm w-full">
       <div className="text-[17px] font-bold mb-1">Bulk Delete by Score</div>
       <div className="font-mono text-[10px] text-[var(--text-3)] mb-6">Remove all candidates scoring below the threshold</div>
 

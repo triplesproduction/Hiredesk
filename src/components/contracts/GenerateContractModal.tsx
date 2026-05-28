@@ -118,7 +118,7 @@ export default function GenerateContractModal({ contract, preselectedCandidateId
           <div className="h-px" style={{ background: "var(--border)" }} />
 
           {/* Two columns */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Candidate Full Name *</label>
               <input className={inputCls} style={inputStyle} placeholder="e.g. Priya Sharma"

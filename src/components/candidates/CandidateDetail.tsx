@@ -51,16 +51,16 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
         style={{ background: "#131313", border: "1px solid var(--border-2)" }}>
 
         {/* Top strip */}
-        <div className="flex items-start justify-between p-6 pb-4" style={{ borderBottom: "1px solid var(--border)" }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 pb-4 gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-4">
             {/* Avatar */}
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold flex-shrink-0"
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-lg sm:text-xl font-bold flex-shrink-0"
               style={{ background: "var(--glass-3)", border: "1px solid var(--border-2)" }}>
               {c.name?.[0] ?? "?"}
             </div>
             <div>
-              <div className="text-xl font-bold tracking-tight">{c.name || "Unknown Candidate"}</div>
-              <div className="text-sm text-[var(--text-3)] font-medium mt-0.5">{c.roleName} · {c.city}</div>
+              <div className="text-lg sm:text-xl font-bold tracking-tight">{c.name || "Unknown Candidate"}</div>
+              <div className="text-xs sm:text-sm text-[var(--text-3)] font-medium mt-0.5">{c.roleName} · {c.city}</div>
               <div className="flex items-center gap-2 mt-1.5">
                 <StatusBadge status={c.status} />
                 <ScoreBadge score={c.score.total} />
@@ -68,17 +68,17 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
             </div>
           </div>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-white transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-white transition-colors self-end sm:self-start"
             style={{ background: "var(--glass-2)", border: "1px solid var(--border)" }}>
             ✕
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-6 pt-4">
+        <div className="flex gap-1 overflow-x-auto no-scrollbar px-5 sm:px-6 pt-4 pb-1">
           {(["profile", "score", "resume"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={clsx("text-sm font-medium px-4 py-2 rounded-lg transition-all capitalize border",
+              className={clsx("text-sm font-medium px-4 py-2 rounded-lg transition-all capitalize border flex-shrink-0",
                 activeTab === tab
                   ? "text-white border-[var(--border-2)] bg-[var(--glass-3)]"
                   : "text-[var(--text-3)] border-transparent hover:text-[var(--text-2)]"
@@ -86,11 +86,11 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
           ))}
         </div>
 
-        <div className="p-6 pt-4">
+        <div className="p-5 sm:p-6 pt-4">
           {activeTab === "profile" && (
             <div className="flex flex-col gap-5">
               {/* Info grid */}
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {INFO_FIELDS.map(({ key, label, icon, suffix = "" }) => {
                   const val = c[key as keyof Candidate];
                   const display = val ? `${val}${suffix}` : "—";

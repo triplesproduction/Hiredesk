@@ -99,9 +99,9 @@ export default function CandidatesTable() {
 
       {/* Bulk action bar */}
       {selCount > 0 && (
-        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-3 bg-[var(--glass-2)] border border-[var(--border-2)]">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-2.5 rounded-lg mb-3 bg-[var(--glass-2)] border border-[var(--border-2)]">
           <span className="font-mono text-[11px] text-[var(--text-2)]">{selCount} selected</span>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Btn variant="ghost" size="sm" onClick={handleApproveSelected}>✓ Approve All</Btn>
             <Btn variant="danger" size="sm" onClick={handleDeleteSelected}>✕ Delete Selected</Btn>
             <Btn variant="outline" size="sm" onClick={clearSelection}>Clear</Btn>
@@ -110,52 +110,105 @@ export default function CandidatesTable() {
       )}
 
       {/* Results count */}
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
         <div className="font-mono text-[10px] text-[var(--text-3)]">
           {filtered.length} result{filtered.length !== 1 ? "s" : ""}
         </div>
-        <div className="flex gap-2">
-          <Btn variant="ghost" size="sm" onClick={() => setShowSmartMatch(true)}>✨ Smart Match Requirements</Btn>
-          <Btn variant="ghost" size="sm" onClick={() => setShowBulkDelete(true)}>⌀ Bulk Delete by Score</Btn>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Btn variant="ghost" size="sm" className="flex-1 sm:flex-none justify-center" onClick={() => setShowSmartMatch(true)}>✨ Smart Match</Btn>
+          <Btn variant="ghost" size="sm" className="flex-1 sm:flex-none justify-center" onClick={() => setShowBulkDelete(true)}>⌀ Bulk Delete</Btn>
         </div>
       </div>
 
       {filtered.length === 0
         ? <EmptyState message="No candidates match the current filters" />
         : (
-          <div className="rounded-xl overflow-hidden border border-[var(--border)]">
-            <table className="w-full border-collapse">
-              <thead style={{ background: "rgba(255,255,255,0.025)" }}>
-                <tr>
-                  <th className={thCls}>
-                    <input type="checkbox" checked={allSelected} onChange={() => toggleSelectAll(filteredIds)} />
-                  </th>
-                  <th className={thCls}>Candidate</th>
-                  <th className={thCls}>Role</th>
-                  <th className={thCls}>Score</th>
-                  <th className={thCls}>Status</th>
-                  <th className={thCls}>City</th>
-                  <th className={thCls}>Gender</th>
-                  <th className={thCls}>Age</th>
-                  <th className={thCls}>Exp</th>
-                  <th className={thCls}>Applied</th>
-                  <th className={thCls}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(c => (
-                  <CandidateRow
-                    key={c.id}
-                    candidate={c}
-                    isSelected={selectedIds.has(c.id)}
-                    onSelect={toggleSelect}
-                    onView={handleView}
-                    onReject={handleReject}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Mobile-First Candidate Cards */}
+            <div className="flex flex-col gap-3 md:hidden">
+              {filtered.map(c => {
+                const isSel = selectedIds.has(c.id);
+                return (
+                  <div key={c.id} 
+                    className={clsx(
+                      "glass p-4 rounded-xl flex flex-col gap-3 transition-all duration-150",
+                      isSel ? "bg-[var(--glass-2)] border-[var(--border-3)]" : ""
+                    )}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <input 
+                          type="checkbox" 
+                          checked={isSel} 
+                          onChange={() => toggleSelect(c.id)} 
+                          className="mt-1"
+                        />
+                        <div className="min-w-0">
+                          <div 
+                            className="font-bold text-[14px] cursor-pointer hover:text-white truncate"
+                            onClick={() => handleView(c)}
+                          >
+                            {c.name}
+                          </div>
+                          <div className="font-mono text-[10px] text-[var(--text-3)] truncate">{c.email}</div>
+                        </div>
+                      </div>
+                      <StatusBadge status={c.status} />
+                    </div>
+
+                    <div className="flex justify-between items-center gap-3 border-t border-white/[0.03] pt-3">
+                      <div className="min-w-0">
+                        <div className="font-mono text-[11px] text-[var(--text-2)] truncate">{c.roleName}</div>
+                        <div className="font-mono text-[9px] text-[var(--text-3)] mt-0.5">
+                          {c.city} · {c.exp} · {c.age} yrs
+                        </div>
+                      </div>
+                      <ScoreBadge score={c.score.total} />
+                    </div>
+
+                    <div className="flex justify-end gap-2 border-t border-white/[0.03] pt-3">
+                      <Btn variant="ghost" size="sm" onClick={() => handleView(c)}>View Profile</Btn>
+                      <Btn variant="danger" size="sm" onClick={() => handleReject(c.id, c.name)}>✕</Btn>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Candidate Table */}
+            <div className="hidden md:block rounded-xl overflow-hidden border border-[var(--border)]">
+              <table className="w-full border-collapse">
+                <thead style={{ background: "rgba(255,255,255,0.025)" }}>
+                  <tr>
+                    <th className={thCls}>
+                      <input type="checkbox" checked={allSelected} onChange={() => toggleSelectAll(filteredIds)} />
+                    </th>
+                    <th className={thCls}>Candidate</th>
+                    <th className={thCls}>Role</th>
+                    <th className={thCls}>Score</th>
+                    <th className={thCls}>Status</th>
+                    <th className={thCls}>City</th>
+                    <th className={thCls}>Gender</th>
+                    <th className={thCls}>Age</th>
+                    <th className={thCls}>Exp</th>
+                    <th className={thCls}>Applied</th>
+                    <th className={thCls}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(c => (
+                    <CandidateRow
+                      key={c.id}
+                      candidate={c}
+                      isSelected={selectedIds.has(c.id)}
+                      onSelect={toggleSelect}
+                      onView={handleView}
+                      onReject={handleReject}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
       {activeCandidate && (

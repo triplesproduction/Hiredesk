@@ -110,7 +110,7 @@ export default function SmartMatchModal({ open, onClose, onViewCandidate }: Prop
   }, [candidates, roleId, minScore, prefExp, prefEdu, selectedSkills]);
 
   return (
-    <Modal open={open} onClose={onClose} className="w-[960px] max-w-[95vw] max-h-[85vh] flex flex-col p-6 overflow-hidden">
+    <Modal open={open} onClose={onClose} className="max-w-[960px] w-full max-h-[90vh] md:max-h-[85vh] flex flex-col p-4 sm:p-6 overflow-y-auto md:overflow-hidden">
       <div className="flex items-start justify-between pb-3 mb-4 border-b border-[var(--border)]">
         <div>
           <div className="text-[18px] font-bold tracking-tight">✨ Requirements Smart Matcher</div>
@@ -121,9 +121,9 @@ export default function SmartMatchModal({ open, onClose, onViewCandidate }: Prop
         <button onClick={onClose} className="text-[var(--text-3)] hover:text-white transition-colors">✕</button>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 min-h-0 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 min-h-0 md:overflow-hidden">
         {/* Left Side: Filter Requirements */}
-        <div className="md:col-span-5 flex flex-col gap-4 overflow-y-auto pr-2 pb-4">
+        <div className="md:col-span-5 flex flex-col gap-4 md:overflow-y-auto pr-2 pb-4">
           <div className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest border-b border-[var(--border)] pb-1 mb-1">
             Job Requirements
           </div>

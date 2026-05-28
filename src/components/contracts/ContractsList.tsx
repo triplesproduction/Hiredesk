@@ -88,7 +88,7 @@ export default function ContractsList() {
             const meta = CONTRACT_META[c.id] ?? { color: "#a0a0a0", roles: [] };
             return (
               <div key={c.id}
-                className="flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200 hover:bg-[var(--glass-2)]"
+                className="flex flex-col sm:flex-row items-start sm:items-center gap-4 px-4 py-4 sm:px-5 sm:py-4 rounded-2xl transition-all duration-200 hover:bg-[var(--glass-2)]"
                 style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>
 
                 {/* Icon */}
@@ -112,15 +112,15 @@ export default function ContractsList() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 flex-shrink-0">
+                <div className="flex gap-2 w-full sm:w-auto flex-shrink-0 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.03] sm:border-t-0 justify-end">
                   <button
                     onClick={() => { setPreselectedCandidateId(""); setGenerating(c); }}
-                    className="text-sm font-semibold px-4 py-2 rounded-xl transition-all"
+                    className="text-sm font-semibold px-4 py-2 rounded-xl transition-all flex-1 sm:flex-none text-center"
                     style={{ background: "white", color: "black" }}>
                     Generate
                   </button>
                   <button onClick={() => setEditing(c)}
-                    className="text-sm font-medium px-4 py-2 rounded-xl transition-all"
+                    className="text-sm font-medium px-4 py-2 rounded-xl transition-all flex-1 sm:flex-none text-center"
                     style={{ background: "var(--glass-2)", border: "1px solid var(--border-2)", color: "var(--text)" }}>
                     Edit Template
                   </button>

@@ -1,10 +1,20 @@
-"use client";
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useStore } from "@/lib/store";
+import { clsx } from "clsx";
+import { X } from "lucide-react";
 
-export default function Sidebar() {
+const NAV = [
+  { label: "Dashboard", href: "/" },
+  { label: "Candidates", href: "/candidates" },
+  { label: "Upload", href: "/upload" },
+  { label: "Contracts", href: "/contracts" },
+  { label: "Roles", href: "/roles" },
+];
+
+export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { candidates, roles, setFilters, exportCSV } = useStore();
   
   const counts = useMemo(() => {
@@ -17,27 +27,76 @@ export default function Sidebar() {
     return res;
   }, [candidates]);
 
-  function go(status: string) { setFilters({ status }); router.push("/candidates"); }
-  function goRole(id: string) { setFilters({ roleId: id }); router.push("/candidates"); }
+  function go(status: string) { setFilters({ status }); router.push("/candidates"); onClose?.(); }
+  function goRole(id: string) { setFilters({ roleId: id }); router.push("/candidates"); onClose?.(); }
+
+  function handleLogout() {
+    localStorage.removeItem("tsp_auth");
+    router.push("/login");
+    onClose?.();
+  }
 
   return (
-    <aside className="w-[220px] flex-shrink-0 flex flex-col gap-0.5 p-3 overflow-y-auto"
-      style={{ borderRight: "1px solid var(--border)" }}>
-      <SLabel>All Roles</SLabel>
-      <SItem label="All Candidates" badge={candidates.length} onClick={() => { setFilters({ roleId:"all" }); router.push("/candidates"); }} />
-      {roles.map(r => (
-        <SItem key={r.id} label={r.name} badge={r.count} onClick={() => goRole(r.id)} small />
-      ))}
-      <div className="h-px bg-[var(--border)] my-2" />
-      <SLabel>Status Filter</SLabel>
-      <SItem label="New"       badge={counts.new}      onClick={() => go("new")} />
-      <SItem label="In Review" badge={counts.review}   onClick={() => go("review")} />
-      <SItem label="Approved"  badge={counts.approved} onClick={() => go("approved")} accent="var(--green)" />
-      <SItem label="Rejected"  badge={counts.rejected} onClick={() => go("rejected")} accent="var(--red)" />
-      <div className="h-px bg-[var(--border)] my-2" />
-      <SLabel>Tools</SLabel>
-      <SItem label="Export CSV" onClick={exportCSV} />
-    </aside>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm lg:hidden transition-all duration-200"
+          onClick={onClose}
+        />
+      )}
+
+      <aside className={clsx(
+        "flex flex-col gap-0.5 p-3 overflow-y-auto h-full flex-shrink-0 transition-transform duration-250 ease-in-out z-50",
+        "fixed inset-y-0 left-0 bg-[#080808] w-[230px] border-r border-[var(--border)] lg:static lg:flex lg:translate-x-0 lg:w-[220px]",
+        isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+      )}>
+        {/* Mobile Header with close button */}
+        <div className="flex items-center justify-between px-2.5 py-2 lg:hidden mb-2 border-b border-[var(--border)]">
+          <div className="text-xs font-extrabold tracking-tight uppercase text-[var(--text-3)]">Navigation</div>
+          <button 
+            onClick={onClose} 
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-2)] hover:text-white hover:bg-[var(--glass-2)] border border-[var(--border)]"
+          >
+            <X size={15} />
+          </button>
+        </div>
+
+        {/* Mobile Navigation Links */}
+        <div className="flex flex-col gap-0.5 lg:hidden mb-2 pb-2 border-b border-[var(--border)]">
+          {NAV.map(n => (
+            <button key={n.href} onClick={() => { router.push(n.href); onClose?.(); }}
+              className={clsx(
+                "flex items-center gap-2.5 px-2.5 py-2 rounded-xl w-full text-left transition-all duration-150 border",
+                pathname === n.href
+                  ? "text-white bg-[var(--glass-3)] border-[var(--border-2)]"
+                  : "text-[var(--text-2)] bg-transparent border-transparent hover:text-white hover:bg-[var(--glass-2)]"
+              )}>
+              <span className="text-xs font-semibold">{n.label}</span>
+            </button>
+          ))}
+          <button onClick={handleLogout}
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl w-full text-left transition-all duration-150 border border-transparent text-[var(--red)] hover:bg-red-500/10 hover:border-red-500/20 mt-1">
+            <span className="text-xs font-bold uppercase tracking-wider">Sign Out</span>
+          </button>
+        </div>
+
+        <SLabel>All Roles</SLabel>
+        <SItem label="All Candidates" badge={candidates.length} onClick={() => { setFilters({ roleId:"all" }); router.push("/candidates"); onClose?.(); }} />
+        {roles.map(r => (
+          <SItem key={r.id} label={r.name} badge={r.count} onClick={() => goRole(r.id)} small />
+        ))}
+        <div className="h-px bg-[var(--border)] my-2" />
+        <SLabel>Status Filter</SLabel>
+        <SItem label="New"       badge={counts.new}      onClick={() => go("new")} />
+        <SItem label="In Review" badge={counts.review}   onClick={() => go("review")} />
+        <SItem label="Approved"  badge={counts.approved} onClick={() => go("approved")} accent="var(--green)" />
+        <SItem label="Rejected"  badge={counts.rejected} onClick={() => go("rejected")} accent="var(--red)" />
+        <div className="h-px bg-[var(--border)] my-2" />
+        <SLabel>Tools</SLabel>
+        <SItem label="Export CSV" onClick={() => { exportCSV(); onClose?.(); }} />
+      </aside>
+    </>
   );
 }
 
@@ -63,3 +122,4 @@ function SItem({ label, badge, onClick, small, accent }: {
     </button>
   );
 }
+

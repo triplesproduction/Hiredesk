@@ -49,7 +49,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <StatCard label="Total Candidates" value={total} delta="Active pipeline" deltaUp />
         <StatCard label="Approved" value={approved} delta={`${total > 0 ? Math.round(approved / total * 100) : 0}% approval rate`} deltaUp={approved > 0} />
         <StatCard label="Avg Score" value={avgScore} delta={avgScore >= 70 ? "Strong pool" : avgScore >= 50 ? "Decent pool" : "Needs more resumes"} />
@@ -57,20 +57,20 @@ export default function DashboardPage() {
       </div>
 
       {/* Status cards — clickable */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {(["new", "review", "approved", "rejected"] as const).map(s => {
           const cnt = candidates.filter(c => c.status === s).length;
           return (
             <button key={s} onClick={() => goFiltered(s)}
               className="glass p-4 text-left hover:bg-[var(--glass-2)] hover:border-[var(--border-2)] transition-all duration-200 rounded-xl">
-              <div className="text-[26px] font-extrabold tracking-tight mb-2">{cnt}</div>
+              <div className="text-[22px] sm:text-[26px] font-extrabold tracking-tight mb-2">{cnt}</div>
               <StatusBadge status={s} />
             </button>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* Top candidates */}
         <div className="glass p-5 rounded-xl">
           <div className="text-[13px] font-bold mb-4 tracking-tight">Top Candidates</div>

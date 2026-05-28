@@ -104,9 +104,9 @@ export default function ContractEditor({ contract, onBack }: Props) {
   ];
 
   return (
-    <div className="flex gap-6 h-full">
+    <div className="flex flex-col lg:flex-row gap-6 h-full">
       {/* Left: controls */}
-      <div className="w-64 flex-shrink-0 flex flex-col gap-4">
+      <div className="w-full lg:w-64 flex-shrink-0 flex flex-col gap-4">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-[var(--text-3)] hover:text-white transition-colors font-medium">
           ← Back to Contracts
         </button>
@@ -212,14 +212,13 @@ export default function ContractEditor({ contract, onBack }: Props) {
             ref={editorRef}
             contentEditable
             suppressContentEditableWarning
-            className="outline-none"
+            className="outline-none px-5 py-6 sm:px-12 sm:py-16 md:px-16 md:py-20"
             style={{
               background: "#fff",
               color: "#111",
               fontFamily: "Arial, Helvetica, sans-serif",
               fontSize: "11pt",
               lineHeight: "1.85",
-              padding: "16mm 20mm",
               minHeight: "297mm",
             }}
             dangerouslySetInnerHTML={{ __html: body }}

@@ -45,9 +45,9 @@ export function Select({ label, className, children, ...props }: React.SelectHTM
 export function Modal({ open, onClose, children, className }: { open:boolean; onClose:()=>void; children:React.ReactNode; className?:string }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center"
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4"
       onClick={e => { if (e.target===e.currentTarget) onClose(); }}>
-      <div className={clsx("bg-[var(--bg2)] border border-[var(--border-2)] rounded-2xl p-7 animate-fade-in", className ?? "w-[440px]")}>
+      <div className={clsx("bg-[var(--bg2)] border border-[var(--border-2)] rounded-2xl p-5 sm:p-7 animate-fade-in w-full max-h-[90vh] overflow-y-auto", className ?? "max-w-md")}>
         {children}
       </div>
     </div>

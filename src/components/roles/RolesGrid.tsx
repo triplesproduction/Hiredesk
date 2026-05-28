@@ -89,7 +89,7 @@ export default function RolesGrid() {
       </div>
 
       {/* Add Role Modal */}
-      <Modal open={showAdd} onClose={() => setShowAdd(false)} className="w-[460px]">
+      <Modal open={showAdd} onClose={() => setShowAdd(false)} className="max-w-[460px] w-full">
         <div className="text-[17px] font-bold mb-1">Add New Role</div>
         <div className="font-mono text-[10px] text-[var(--text-3)] mb-5">Define role name, type, and scoring keywords</div>
 
