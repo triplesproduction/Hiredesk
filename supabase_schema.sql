@@ -33,19 +33,19 @@ CREATE INDEX IF NOT EXISTS idx_candidates_created_at ON public.candidates("creat
 -- 3. Enable Row Level Security (RLS)
 ALTER TABLE public.candidates ENABLE ROW LEVEL SECURITY;
 
--- 4. Create policies to allow public anon read/write access (standard for simple client-side apps using the anon key)
+-- 4. Create secure policies restricting candidate read/write access strictly to authenticated admins
 DROP POLICY IF EXISTS "Allow public read" ON public.candidates;
-CREATE POLICY "Allow public read" ON public.candidates 
-  FOR SELECT USING (true);
+CREATE POLICY "Allow select for authenticated admins" ON public.candidates 
+  FOR SELECT TO authenticated USING (true);
 
 DROP POLICY IF EXISTS "Allow public insert" ON public.candidates;
-CREATE POLICY "Allow public insert" ON public.candidates 
-  FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow insert for authenticated admins" ON public.candidates 
+  FOR INSERT TO authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow public update" ON public.candidates;
-CREATE POLICY "Allow public update" ON public.candidates 
-  FOR UPDATE USING (true);
+CREATE POLICY "Allow update for authenticated admins" ON public.candidates 
+  FOR UPDATE TO authenticated USING (true);
 
 DROP POLICY IF EXISTS "Allow public delete" ON public.candidates;
-CREATE POLICY "Allow public delete" ON public.candidates 
-  FOR DELETE USING (true);
+CREATE POLICY "Allow delete for authenticated admins" ON public.candidates 
+  FOR DELETE TO authenticated USING (true);
