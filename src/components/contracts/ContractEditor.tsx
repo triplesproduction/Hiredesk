@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useStore } from "@/lib/store";
 import type { Contract } from "@/types";
 import { compressImage } from "@/lib/utils/image";
@@ -9,8 +9,15 @@ interface Props { contract: Contract; onBack: () => void; }
 export default function ContractEditor({ contract, onBack }: Props) {
   const { updateContract } = useStore();
   const [body, setBody] = useState(contract.body);
-  const [logoUrl, setLogoUrl] = useState<string>(() => localStorage.getItem("tsp_logo") ?? "");
-  const [signUrl, setSignUrl] = useState<string>(() => localStorage.getItem("tsp_sign") ?? "");
+  // Initialize as empty — populated after mount to avoid SSR crash (localStorage is client-only)
+  const [logoUrl, setLogoUrl] = useState<string>("");
+  const [signUrl, setSignUrl] = useState<string>("");
+
+  // Load saved logo/sign from localStorage on mount (and whenever contract changes)
+  useEffect(() => {
+    setLogoUrl(localStorage.getItem("tsp_logo") ?? "");
+    setSignUrl(localStorage.getItem("tsp_sign") ?? "");
+  }, [contract.id]);
   const logoRef = useRef<HTMLInputElement>(null);
   const signRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);

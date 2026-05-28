@@ -54,9 +54,10 @@ export default function ContractsList() {
   const router = useRouter();
 
   useEffect(() => {
+    // Read saved brand assets from localStorage on initial mount
     setHasLogo(!!localStorage.getItem("tsp_logo"));
     setHasSign(!!localStorage.getItem("tsp_sign"));
-  }, [editing]);
+  }, []);
 
   // Auto-open the Generate modal when arriving from "Generate Contract" on a candidate
   useEffect(() => {
