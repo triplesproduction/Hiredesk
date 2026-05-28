@@ -61,20 +61,23 @@ export default function SmartMatchModal({ open, onClose, onViewCandidate }: Prop
 
   // Calculate real-time candidate match scores
   const matchedCandidates = useMemo(() => {
-    const results = candidates.map(c => {
-      // 1. Role match: 20 points
-      const rolePoints = roleId === "all" || c.roleId === roleId ? 20 : 0;
+    const filtered = candidates.filter(c => {
+      if (roleId !== "all" && c.roleId !== roleId) return false;
+      if (c.score.total < minScore) return false;
+      return true;
+    });
 
-      // 2. Experience match: 15 points
-      const expPoints = prefExp === "all" || c.exp === prefExp ? 15 : 0;
+    const results = filtered.map(c => {
+      // 1. Role match: 20 points (always true since we filtered)
+      const rolePoints = 20;
 
-      // 3. Education match: 15 points
-      const eduPoints = prefEdu === "all" || c.education === prefEdu ? 15 : 0;
+      // 2. Experience match: 20 points
+      const expPoints = prefExp === "all" || c.exp === prefExp ? 20 : 0;
 
-      // 4. ATS Score threshold match: 10 points
-      const scorePoints = c.score.total >= minScore ? 10 : 0;
+      // 3. Education match: 20 points
+      const eduPoints = prefEdu === "all" || c.education === prefEdu ? 20 : 0;
 
-      // 5. Skills match: 40 points
+      // 4. Skills match: 40 points
       let skillPoints = 40;
       let matchedSkillsList: string[] = [];
       let missingSkillsList: string[] = [];
@@ -87,7 +90,7 @@ export default function SmartMatchModal({ open, onClose, onViewCandidate }: Prop
         missingSkillsList = reqSkills.filter(s => !c.skills.includes(s));
       }
 
-      const totalMatchScore = rolePoints + expPoints + eduPoints + scorePoints + skillPoints;
+      const totalMatchScore = rolePoints + expPoints + eduPoints + skillPoints;
 
       return {
         candidate: c,
@@ -95,7 +98,7 @@ export default function SmartMatchModal({ open, onClose, onViewCandidate }: Prop
         rolePoints,
         expPoints,
         eduPoints,
-        scorePoints,
+        scorePoints: 10,
         skillPoints,
         matchedSkillsList,
         missingSkillsList,
