@@ -1,31 +1,56 @@
 "use client";
 import type { Candidate, Role } from "@/types";
-import { makeCandidate, extractInfoFromText, detectBestRole, scoreCandidateFromText } from "@/lib/data";
+import { makeCandidate, extractInfoFromText, detectBestRole, scoreCandidateFromText, SKILLS_POOL } from "@/lib/data";
 import { extractTextFromPDF } from "@/lib/utils/pdf";
-
-const SKILL_KEYWORDS: Record<string, string[]> = {
-  "dev-ft": ["React","Node","JavaScript","TypeScript","Python","Flutter","Next.js","MongoDB","SQL","AWS","Docker","Git","REST","GraphQL","CSS","HTML"],
-  "dev-in": ["JavaScript","HTML","CSS","React","Python","Git","Basics","jQuery","Bootstrap"],
-  "designer": ["Figma","Photoshop","Illustrator","Canva","Branding","Typography","UI","UX","Adobe","InDesign","CorelDRAW","Sketch"],
-  "editor": ["Premiere","After Effects","DaVinci","Final Cut","Color Grading","Motion Graphics","Editing","CapCut","Audition"],
-  "dmarketer": ["SEO","SEM","Google Ads","Meta Ads","Analytics","Email Marketing","HubSpot","Campaigns","Digital Marketing","GTM"],
-  "smm": ["Instagram","TikTok","Social Media","Content Creation","Reels","Scheduling","Engagement","Facebook","YouTube","LinkedIn"],
-  "sales": ["Sales","CRM","B2B","B2C","Negotiation","Lead Generation","Revenue","Target","Closing","Salesforce","Pipeline"],
-  "perfmkt": ["Google Ads","Meta Ads","ROAS","CPC","CPM","PPC","Remarketing","A/B Testing","Conversion","Performance Marketing"],
-  "content": ["Copywriting","SEO","Content Strategy","Storytelling","Editorial","Blogging","Brand Voice","Content Calendar"],
-  "model-m": ["Modelling","Portfolio","Commercial","Editorial","Runway","Brand","Fitness"],
-  "model-f": ["Modelling","Portfolio","Commercial","Editorial","Runway","Fashion","Brand"],
-  "camera": ["Cinematography","DSLR","Lighting","Video Production","Drone","Stabilizer","Camera","Shoot","Lens","Gimbal"],
-};
 
 function extractSkills(text: string, roleId: string): string[] {
   const lower = text.toLowerCase();
-  const pool = SKILL_KEYWORDS[roleId] ?? [];
-  const found = pool.filter(k => lower.includes(k.toLowerCase()));
-  // Also look for generic skill keywords
-  const generic = ["Photoshop","Illustrator","Excel","PowerPoint","WordPress","Shopify","Zoom","Slack"]
-    .filter(k => lower.includes(k.toLowerCase()) && !found.includes(k));
-  return Array.from(new Set([...found, ...generic])).slice(0, 8);
+  
+  // 1. Get role-specific skills from data pool (highest priority)
+  const rolePool = SKILLS_POOL[roleId] ?? [];
+  const foundRoleSkills = rolePool.filter(skill => {
+    const escaped = skill.toLowerCase().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    return new RegExp(`\\b${escaped}\\b`, 'i').test(lower) || lower.includes(skill.toLowerCase());
+  });
+
+  // 2. Get other skills from the global pool (medium priority)
+  const globalPool = [
+    "React", "Node.js", "JavaScript", "TypeScript", "Python", "Flutter", "Next.js", "MongoDB", "SQL", "AWS", "Docker", "Git", "REST APIs", "GraphQL", "CSS", "HTML",
+    "Figma", "Adobe XD", "Illustrator", "Photoshop", "Canva", "Branding", "Typography", "UI/UX", "Premiere Pro", "After Effects", "DaVinci Resolve", "Motion Graphics", "Color Grading",
+    "SEO", "SEM", "Google Ads", "Meta Ads", "Analytics", "Email Marketing", "HubSpot", "Instagram", "TikTok", "Content Creation", "Reels", "Sales", "CRM", "B2B Sales", "Lead Generation",
+    "Negotiation", "Salesforce", "Cold Calling", "ROAS", "PPC", "A/B Testing", "Conversion Optimization", "Copywriting", "Content Strategy", "Storytelling", "Brand Voice", "Editorial",
+    "Commercial", "Runway", "Fashion", "Cinematography", "DSLR", "Lighting", "Video Production", "Drone", "Stabilizer", "Camera", "WordPress", "Shopify", "Excel", "PowerPoint", "Word", "Office"
+  ];
+  
+  const foundGlobalSkills = globalPool.filter(skill => {
+    if (foundRoleSkills.includes(skill)) return false;
+    const escaped = skill.toLowerCase().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    return new RegExp(`\\b${escaped}\\b`, 'i').test(lower) || lower.includes(skill.toLowerCase());
+  });
+
+  // 3. Try to parse free-form skills section from the text
+  // e.g. "Skills: React, Node, Python, Java"
+  const sectionSkills: string[] = [];
+  const skillSectionMatch = text.match(/\b(?:skills|expertise|key\s+skills|technical\s+skills)\b[:\-]?\s*([^\n\r]{5,200})/i);
+  if (skillSectionMatch) {
+    const rawList = skillSectionMatch[1];
+    const items = rawList.split(/[,;|\/•\t]+/).map(i => i.trim()).filter(i => i.length > 1 && i.length < 25);
+    for (const item of items) {
+      const formattedItem = item.charAt(0).toUpperCase() + item.slice(1);
+      if (!foundRoleSkills.includes(formattedItem) && !foundGlobalSkills.includes(formattedItem)) {
+        sectionSkills.push(formattedItem);
+      }
+    }
+  }
+
+  const combined = [...foundRoleSkills, ...foundGlobalSkills, ...sectionSkills];
+  const unique = Array.from(new Set(combined));
+
+  if (unique.length > 0) {
+    return unique.slice(0, 10);
+  }
+
+  return rolePool.slice(0, 5);
 }
 
 const TITLE_STOP_WORDS = /\b(executive|manager|developer|designer|editor|marketer|cameraman|consultant|engineer|intern|resume|cv|profile|page|curriculum|vitae|specialist|analyst|lead|director|architect|builder|associate|student|graduate|fresher|professional)\b/i;
@@ -123,16 +148,64 @@ function extractEducation(text: string): string {
 }
 
 function extractExperience(text: string): string {
-  const m = text.match(/(\d+)\+?\s*(?:year|yr)s?\s*(?:of\s*)?(?:experience|exp)/i);
-  if (m) {
-    const yrs = parseInt(m[1]);
-    if (yrs === 0) return "Fresher";
-    if (yrs === 1) return "1 yr";
-    if (yrs >= 5) return "5+ yrs";
-    return `${yrs} yrs`;
-  }
-  const fresher = /fresher|fresh graduate|0 year|no experience/i.test(text);
+  const lower = text.toLowerCase();
+  
+  // 1. Fresher checks
+  const fresher = /\b(fresher|fresh graduate|entry level|no experience|0\s*years?\s*experience)\b/i.test(lower);
   if (fresher) return "Fresher";
+
+  // 2. Patterns where the label is "Experience" or "Total Experience" followed by years
+  const labelRegexes = [
+    /\b(?:total\s+)?experience\s*[:\-]?\s*(\d+(?:\.\d+)?)\+?\s*(?:year|yr)s?/i,
+    /\bwork\s+experience\s*[:\-]?\s*(\d+(?:\.\d+)?)\+?\s*(?:year|yr)s?/i,
+    /\b(?:total\s+)?exp\s*[:\-]?\s*(\d+(?:\.\d+)?)\+?\s*(?:year|yr)s?/i
+  ];
+
+  for (const regex of labelRegexes) {
+    const match = lower.match(regex);
+    if (match) {
+      const yrs = Math.round(parseFloat(match[1]));
+      if (yrs === 0) return "Fresher";
+      if (yrs === 1) return "1 yr";
+      if (yrs >= 5) return "5+ yrs";
+      if (yrs === 2) return "2 yrs";
+      if (yrs === 3 || yrs === 4) return "3 yrs";
+      return `${yrs} yrs`;
+    }
+  }
+
+  // 3. Patterns where the number comes before "years of experience"
+  const valueFirstRegexes = [
+    /(\d+(?:\.\d+)?)\+?\s*(?:year|yr)s?\s*(?:of\s*)?(?:experience|exp|work\s+exp)/i,
+    /(\d+(?:\.\d+)?)\+?\s*(?:year|yr)s?\s+(?:professional|relevant|industry)\s+experience/i
+  ];
+
+  for (const regex of valueFirstRegexes) {
+    const match = lower.match(regex);
+    if (match) {
+      const yrs = Math.round(parseFloat(match[1]));
+      if (yrs === 0) return "Fresher";
+      if (yrs === 1) return "1 yr";
+      if (yrs >= 5) return "5+ yrs";
+      if (yrs === 2) return "2 yrs";
+      if (yrs === 3 || yrs === 4) return "3 yrs";
+      return `${yrs} yrs`;
+    }
+  }
+
+  // 4. Standalone years of experience matching
+  const standaloneMatch = lower.match(/\b(\d+(?:\.\d+)?)\+?\s*(?:year|yr)s?\b/i);
+  if (standaloneMatch) {
+    const yrs = Math.round(parseFloat(standaloneMatch[1]));
+    if (yrs >= 1 && yrs <= 35) {
+      if (yrs === 1) return "1 yr";
+      if (yrs >= 5) return "5+ yrs";
+      if (yrs === 2) return "2 yrs";
+      if (yrs === 3 || yrs === 4) return "3 yrs";
+      return `${yrs} yrs`;
+    }
+  }
+
   return "Not specified";
 }
 

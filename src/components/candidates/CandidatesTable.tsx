@@ -56,7 +56,7 @@ const CandidateRow = memo(function CandidateRow({ candidate: c, isSelected, onSe
 });
 
 export default function CandidatesTable() {
-  const { updateCandidate, deleteCandidates, selectedIds, toggleSelect, toggleSelectAll, clearSelection } = useStore();
+  const { candidates, updateCandidate, deleteCandidates, selectedIds, toggleSelect, toggleSelectAll, clearSelection } = useStore();
   const filtered = useFilteredCandidates();
   const [activeCandidate, setActiveCandidate] = useState<Candidate | null>(null);
   const [showBulkDelete, setShowBulkDelete] = useState(false);
@@ -160,7 +160,7 @@ export default function CandidatesTable() {
 
       {activeCandidate && (
         <CandidateDetail
-          candidate={activeCandidate}
+          candidate={candidates.find(cand => cand.id === activeCandidate.id) ?? activeCandidate}
           onClose={() => setActiveCandidate(null)}
         />
       )}
