@@ -65,3 +65,24 @@ export async function deleteDBCandidates(ids: string[]): Promise<void> {
     throw error;
   }
 }
+
+export async function uploadResumeFile(file: File, candidateId: string): Promise<string> {
+  const fileExt = file.name.split(".").pop();
+  const filePath = `${candidateId}/${Date.now()}.${fileExt}`;
+  
+  const { error } = await supabase.storage
+    .from("resumes")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false
+    });
+
+  if (error) {
+    console.error("Supabase storage upload error details:", error);
+    throw error;
+  }
+
+  const { data } = supabase.storage.from("resumes").getPublicUrl(filePath);
+  return data.publicUrl;
+}
+

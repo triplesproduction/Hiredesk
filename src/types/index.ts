@@ -24,6 +24,7 @@ export interface Candidate {
   education: string;
   skills: string[];
   resumeFile: string;
+  resumeUrl?: string;   // Public URL to the uploaded PDF on Supabase Storage
   resumeText?: string;  // Raw extracted text for resume preview
   appliedAt: string;
   createdAt: string;

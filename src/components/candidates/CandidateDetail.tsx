@@ -32,6 +32,7 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
   const { updateCandidate, deleteCandidate } = useStore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"profile" | "score" | "resume">("profile");
+  const [resumeMode, setResumeMode] = useState<"pdf" | "text">(c.resumeUrl ? "pdf" : "text");
 
   function handleDelete() {
     if (confirm(`Delete ${c.name}'s profile? This cannot be undone.`)) {
@@ -179,10 +180,56 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
             </div>
           )}
           {activeTab === "resume" && (
-            c.resumeText ? (
+            c.resumeUrl ? (
               <div className="flex flex-col gap-4 animate-fade-in">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest">
+                  <div className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest animate-fade-in">
+                    {resumeMode === "pdf" ? "Original PDF Resume" : "Extracted Resume Text"}
+                  </div>
+                  {c.resumeText && (
+                    <div className="flex p-0.5 rounded-lg border border-[var(--border)] bg-[#0c0c0c] text-xs font-semibold select-none animate-fade-in">
+                      <button
+                        onClick={() => setResumeMode("pdf")}
+                        className={clsx(
+                          "px-3 py-1 rounded-md transition-all duration-150",
+                          resumeMode === "pdf"
+                            ? "bg-[var(--glass-3)] text-white shadow-sm"
+                            : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+                        )}
+                      >
+                        📄 PDF View
+                      </button>
+                      <button
+                        onClick={() => setResumeMode("text")}
+                        className={clsx(
+                          "px-3 py-1 rounded-md transition-all duration-150",
+                          resumeMode === "text"
+                            ? "bg-[var(--glass-3)] text-white shadow-sm"
+                            : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+                        )}
+                      >
+                        📝 Text View
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {resumeMode === "pdf" ? (
+                  <iframe
+                    src={`${c.resumeUrl}#toolbar=0`}
+                    className="w-full h-[55vh] rounded-xl border border-[var(--border)] bg-[#080808] animate-fade-in"
+                  />
+                ) : (
+                  <div className="w-full rounded-xl text-xs font-mono p-5 overflow-y-auto max-h-[50vh] whitespace-pre-wrap leading-relaxed select-text animate-fade-in"
+                    style={{ background: "#080808", border: "1px solid var(--border)", color: "var(--text-2)" }}>
+                    {c.resumeText}
+                  </div>
+                )}
+              </div>
+            ) : c.resumeText ? (
+              <div className="flex flex-col gap-4 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest animate-fade-in">
                     Original Extracted Resume Content
                   </div>
                   <div className="text-xs text-[var(--text-3)] bg-[var(--glass-2)] px-2.5 py-1 rounded border border-[var(--border)]">

@@ -85,7 +85,18 @@ export default function UploadZone() {
     // Build tasks for concurrency runner (max 3 parallel PDF parses)
     const tasks = waitingIndices.map(idx => async () => {
       try {
-        const candidate = await parseResumeFile(queue[idx].file, roles);
+        const file = queue[idx].file;
+        const candidate = await parseResumeFile(file, roles);
+
+        // Upload original PDF file to Supabase storage
+        try {
+          const db = await import("@/lib/supabase");
+          const publicUrl = await db.uploadResumeFile(file, candidate.id);
+          candidate.resumeUrl = publicUrl;
+        } catch (uploadError) {
+          console.error(`Failed to upload PDF resume for ${candidate.name || "candidate"}:`, uploadError);
+        }
+
         setQueue(prev => prev.map((q, i) =>
           i === idx ? { ...q, status: "done" as const, result: candidate } : q
         ));

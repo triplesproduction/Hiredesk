@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.candidates (
   education TEXT NOT NULL,
   skills TEXT[] NOT NULL DEFAULT '{}',
   "resumeFile" TEXT NOT NULL,
+  "resumeUrl" TEXT,
   "resumeText" TEXT,
   "appliedAt" TEXT NOT NULL,
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
