@@ -62,39 +62,47 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const initializedRef = useRef(false);
 
-  // ─── Load from localStorage once on mount ──────────────────────────────────
+  // ─── Load from Supabase (fallback to localStorage) once on mount ───────────
   useEffect(() => {
-    try {
-      const storedCandidates = localStorage.getItem("tsp_candidates");
-      const storedRoles = localStorage.getItem("tsp_roles");
-      const storedContracts = localStorage.getItem("tsp_contracts");
+    async function loadInitialData() {
+      try {
+        const storedRoles = localStorage.getItem("tsp_roles");
+        const storedContracts = localStorage.getItem("tsp_contracts");
+        
+        let finalCandidates: Candidate[] = [];
+        let finalRoles: Role[];
 
-      let finalCandidates: Candidate[];
-      let finalRoles: Role[];
+        // Try to fetch from Supabase first
+        try {
+          const { getDBCandidates } = await import("@/lib/supabase");
+          finalCandidates = await getDBCandidates();
+          console.log(`Successfully synced ${finalCandidates.length} candidates from Supabase.`);
+        } catch (dbError) {
+          console.warn("Supabase fetch failed, falling back to localStorage:", dbError);
+          const storedCandidates = localStorage.getItem("tsp_candidates");
+          if (storedCandidates) {
+            finalCandidates = JSON.parse(storedCandidates).filter((c: Candidate) => c.resumeText);
+          }
+        }
 
-      if (storedCandidates) {
-        // Clear all dummy/seed data (candidates without resumeText)
-        finalCandidates = JSON.parse(storedCandidates).filter((c: Candidate) => c.resumeText);
-      } else {
-        finalCandidates = [];
+        finalRoles = computeRoleCounts(finalCandidates, DEFAULT_ROLES);
+
+        setCandidatesRaw(finalCandidates);
+        setRolesRaw(finalRoles);
+
+        if (storedContracts) {
+          setContracts(JSON.parse(storedContracts));
+        }
+      } catch (e) {
+        console.error("Failed to hydrate:", e);
+        setCandidatesRaw([]);
+        setRolesRaw(computeRoleCounts([], DEFAULT_ROLES));
+      } finally {
+        initializedRef.current = true;
       }
-
-      // Recompute role counts based on the active, non-dummy candidates list
-      finalRoles = computeRoleCounts(finalCandidates, DEFAULT_ROLES);
-
-      setCandidatesRaw(finalCandidates);
-      setRolesRaw(finalRoles);
-
-      if (storedContracts) {
-        setContracts(JSON.parse(storedContracts));
-      }
-    } catch (e) {
-      console.error("Failed to hydrate from localStorage:", e);
-      setCandidatesRaw([]);
-      setRolesRaw(computeRoleCounts([], DEFAULT_ROLES));
-    } finally {
-      initializedRef.current = true;
     }
+
+    loadInitialData();
   }, []);
 
   // ─── Debounced localStorage writes (300ms) ──────────────────────────────────
@@ -138,6 +146,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setRolesRaw(rPrev => computeRoleCounts(next, rPrev));
       return next;
     });
+    import("@/lib/supabase").then(db => db.insertDBCandidate(c)).catch(err => console.error(err));
   }, []);
 
   const addCandidates = useCallback((newOnes: Candidate[]) => {
@@ -146,6 +155,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setRolesRaw(rPrev => computeRoleCounts(next, rPrev));
       return next;
     });
+    import("@/lib/supabase").then(db => db.insertDBCandidates(newOnes)).catch(err => console.error(err));
   }, []);
 
   const updateCandidate = useCallback((id: string, patch: Partial<Candidate>) => {
@@ -156,6 +166,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
       return next;
     });
+    import("@/lib/supabase").then(db => db.updateDBCandidate(id, patch)).catch(err => console.error(err));
   }, []);
 
   const deleteCandidate = useCallback((id: string) => {
@@ -164,6 +175,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setRolesRaw(rPrev => computeRoleCounts(next, rPrev));
       return next;
     });
+    import("@/lib/supabase").then(db => db.deleteDBCandidate(id)).catch(err => console.error(err));
   }, []);
 
   const deleteCandidates = useCallback((ids: string[]) => {
@@ -174,18 +186,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
     setSelectedIds(new Set());
+    import("@/lib/supabase").then(db => db.deleteDBCandidates(ids)).catch(err => console.error(err));
   }, []);
 
   const deleteBelowScore = useCallback((threshold: number) => {
     let deletedCount = 0;
+    const toDeleteIds: string[] = [];
     setCandidatesRaw(prev => {
       const next = prev.filter(c => {
-        if (c.score.total < threshold) { deletedCount++; return false; }
+        if (c.score.total < threshold) { 
+          deletedCount++; 
+          toDeleteIds.push(c.id);
+          return false; 
+        }
         return true;
       });
       setRolesRaw(rPrev => computeRoleCounts(next, rPrev));
       return next;
     });
+    if (toDeleteIds.length > 0) {
+      import("@/lib/supabase").then(db => db.deleteDBCandidates(toDeleteIds)).catch(err => console.error(err));
+    }
     return deletedCount;
   }, []);
 
