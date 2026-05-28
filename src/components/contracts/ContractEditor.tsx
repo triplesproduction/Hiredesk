@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useStore } from "@/lib/store";
+import { uploadBrandAsset, getBrandAssetUrl, deleteBrandAsset } from "@/lib/supabase";
 import type { Contract } from "@/types";
 import { compressImage } from "@/lib/utils/image";
 
@@ -13,30 +14,44 @@ export default function ContractEditor({ contract, onBack }: Props) {
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [signUrl, setSignUrl] = useState<string>("");
 
-  // Load saved logo/sign from localStorage on mount (and whenever contract changes)
+  // Load saved logo/sign from Supabase/localStorage on mount (and whenever contract changes)
   useEffect(() => {
-    setLogoUrl(localStorage.getItem("tsp_logo") ?? "");
-    setSignUrl(localStorage.getItem("tsp_sign") ?? "");
+    async function loadAssets() {
+      const logo = await getBrandAssetUrl("tsp_logo");
+      const sign = await getBrandAssetUrl("tsp_sign");
+      setLogoUrl(logo);
+      setSignUrl(sign);
+    }
+    loadAssets();
   }, [contract.id]);
   const logoRef = useRef<HTMLInputElement>(null);
   const signRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  async function uploadImage(file: File, key: string, setter: (s: string) => void) {
+  async function uploadImage(file: File, key: "tsp_logo" | "tsp_sign", setter: (s: string) => void) {
     try {
       const compressed = await compressImage(file, 400, 150);
-      setter(compressed);
-      localStorage.setItem(key, compressed);
+      const url = await uploadBrandAsset(compressed, key);
+      setter(url);
     } catch (err) {
-      console.error("Image compression failed, falling back to raw data URL", err);
+      console.error("Image compression or upload failed, falling back to raw data URL", err);
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = async e => {
         const url = e.target?.result as string;
-        setter(url);
-        localStorage.setItem(key, url);
+        try {
+          const publicUrl = await uploadBrandAsset(url, key);
+          setter(publicUrl);
+        } catch (uploadErr) {
+          console.error("Raw upload failed:", uploadErr);
+        }
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  async function clearImage(key: "tsp_logo" | "tsp_sign", setter: (s: string) => void) {
+    await deleteBrandAsset(key);
+    setter("");
   }
 
   // ─── Debounced sync: persist only after 400ms of no typing ──────────────────
@@ -129,7 +144,7 @@ export default function ContractEditor({ contract, onBack }: Props) {
               {logoUrl
                 ? <div className="relative rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-2)" }}>
                     <img src={logoUrl} alt="Logo" className="w-full h-14 object-contain p-2 bg-white" />
-                    <button onClick={() => { setLogoUrl(""); localStorage.removeItem("tsp_logo"); }}
+                    <button onClick={() => clearImage("tsp_logo", setLogoUrl)}
                       className="absolute top-1 right-1 w-5 h-5 rounded bg-black/70 text-white text-xs flex items-center justify-center">✕</button>
                   </div>
                 : <button onClick={() => logoRef.current?.click()}
@@ -148,7 +163,7 @@ export default function ContractEditor({ contract, onBack }: Props) {
               {signUrl
                 ? <div className="relative rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-2)" }}>
                     <img src={signUrl} alt="Sign" className="w-full h-12 object-contain p-2 bg-white" />
-                    <button onClick={() => { setSignUrl(""); localStorage.removeItem("tsp_sign"); }}
+                    <button onClick={() => clearImage("tsp_sign", setSignUrl)}
                       className="absolute top-1 right-1 w-5 h-5 rounded bg-black/70 text-white text-xs flex items-center justify-center">✕</button>
                   </div>
                 : <button onClick={() => signRef.current?.click()}

@@ -2,10 +2,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useStore } from "@/lib/store";
 import { useSearchParams, useRouter } from "next/navigation";
+import { uploadBrandAsset, getBrandAssetUrl, deleteBrandAsset } from "@/lib/supabase";
 import ContractEditor from "./ContractEditor";
 import GenerateContractModal from "./GenerateContractModal";
 import type { Contract } from "@/types";
 import { clsx } from "clsx";
+import { Btn } from "@/components/ui";
 
 const CONTRACT_META: Record<string, { color: string; roles: string[] }> = {
   "emp-ft":    { color: "#4ade80", roles: ["All Full-time roles"] },
@@ -31,22 +33,26 @@ export default function ContractsList() {
     try {
       const { compressImage } = await import("@/lib/utils/image");
       const compressed = await compressImage(file, 400, 150);
-      localStorage.setItem(key, compressed);
+      await uploadBrandAsset(compressed, key as "tsp_logo" | "tsp_sign");
       setter(true);
     } catch (err) {
-      console.error("Compression failed, falling back to raw data URL", err);
+      console.error("Compression or upload failed, falling back to raw data URL", err);
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = async e => {
         const url = e.target?.result as string;
-        localStorage.setItem(key, url);
-        setter(true);
+        try {
+          await uploadBrandAsset(url, key as "tsp_logo" | "tsp_sign");
+          setter(true);
+        } catch (uploadErr) {
+          console.error("Raw upload failed:", uploadErr);
+        }
       };
       reader.readAsDataURL(file);
     }
   }
 
-  function handleClear(key: string, setter: (b: boolean) => void) {
-    localStorage.removeItem(key);
+  async function handleClear(key: string, setter: (b: boolean) => void) {
+    await deleteBrandAsset(key as "tsp_logo" | "tsp_sign");
     setter(false);
   }
 
@@ -54,23 +60,23 @@ export default function ContractsList() {
   const router = useRouter();
 
   useEffect(() => {
-    // Read saved brand assets from localStorage on initial mount
-    setHasLogo(!!localStorage.getItem("tsp_logo"));
-    setHasSign(!!localStorage.getItem("tsp_sign"));
+    async function loadAssets() {
+      const logo = await getBrandAssetUrl("tsp_logo");
+      const sign = await getBrandAssetUrl("tsp_sign");
+      setHasLogo(!!logo);
+      setHasSign(!!sign);
+    }
+    loadAssets();
   }, []);
 
-  // Auto-open the Generate modal when arriving from "Generate Contract" on a candidate
   useEffect(() => {
     const candidateId = searchParams.get("candidateId");
     if (candidateId && contracts.length > 0) {
       setPreselectedCandidateId(candidateId);
-      // Default to first contract template (Employment Agreement)
       setGenerating(contracts[0]);
-      // Clean the URL so refresh doesn't re-trigger
       router.replace("/contracts");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contracts]);
+  }, [contracts, searchParams, router]);
 
   if (editing) {
     return (
@@ -83,7 +89,6 @@ export default function ContractsList() {
   return (
     <div className="w-full animate-fade-in">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Left Column: Contract templates list */}
         <div className="lg:col-span-2 flex flex-col gap-3">
           {contracts.map(c => {
             const meta = CONTRACT_META[c.id] ?? { color: "#a0a0a0", roles: [] };
@@ -92,13 +97,11 @@ export default function ContractsList() {
                 className="flex flex-col sm:flex-row items-start sm:items-center gap-4 px-4 py-4 sm:px-5 sm:py-4 rounded-2xl transition-all duration-200 hover:bg-[var(--glass-2)]"
                 style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>
 
-                {/* Icon */}
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
                   style={{ background: "var(--glass-3)", border: "1px solid var(--border-2)" }}>
                   {c.icon}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="text-[15px] font-semibold tracking-tight">{c.name}</div>
                   <div className="text-xs text-[var(--text-3)] mt-0.5 font-medium">{c.desc}</div>
@@ -112,7 +115,6 @@ export default function ContractsList() {
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-2 w-full sm:w-auto flex-shrink-0 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t border-white/[0.03] sm:border-t-0 justify-end">
                   <button
                     onClick={() => { setPreselectedCandidateId(""); setGenerating(c); }}
@@ -131,9 +133,7 @@ export default function ContractsList() {
           })}
         </div>
 
-        {/* Right Column: Legal Disclaimer and Active configuration assets */}
         <div className="flex flex-col gap-4">
-          {/* Legal Note */}
           <div className="p-5 rounded-2xl flex flex-col" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>
             <div className="flex items-start gap-3">
               <span className="text-xl flex-shrink-0">⚖️</span>
@@ -148,63 +148,39 @@ export default function ContractsList() {
             </div>
           </div>
 
-          {/* Configuration status cards */}
           <div className="p-5 rounded-2xl flex flex-col" style={{ background: "var(--glass)", border: "1px solid var(--border)" }}>
             <div className="text-xs font-semibold text-[var(--text-3)] uppercase tracking-widest mb-3">Global Brand Assets</div>
-            
             <div className="flex flex-col gap-4">
-              {/* Logo Card */}
-              <div className="flex flex-col gap-2 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[var(--text-2)]">Company Logo</span>
-                  <span className={clsx("font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded",
-                    hasLogo ? "bg-[var(--green)]/10 text-[var(--green)]" : "bg-[var(--yellow)]/10 text-[var(--yellow)]"
-                  )}>
-                    {hasLogo ? "Active" : "Missing"}
-                  </span>
+              <div className="p-3 rounded-xl border border-[var(--border)] flex flex-col items-center justify-center text-center">
+                {hasLogo 
+                  ? <div className="text-xs text-[var(--green)]">✅ Logo Uploaded</div>
+                  : <div className="text-[10px] text-[var(--yellow)]">⚠️ Missing Logo</div>}
+                <div className="flex gap-2 w-full mt-2">
+                  <Btn variant="outline" size="sm" onClick={() => logoRef.current?.click()} className="flex-1">
+                    {hasLogo ? "Update Logo" : "Upload Logo"}
+                  </Btn>
+                  {hasLogo && (
+                    <Btn variant="ghost" size="sm" onClick={() => handleClear("tsp_logo", setHasLogo)}>Clear</Btn>
+                  )}
                 </div>
-                {hasLogo ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 rounded bg-white p-1 text-center border border-[var(--border)] overflow-hidden">
-                      <img src={localStorage.getItem("tsp_logo") ?? ""} alt="Logo" className="h-8 object-contain mx-auto" />
-                    </div>
-                    <button onClick={() => handleClear("tsp_logo", setHasLogo)} className="text-xs text-[var(--red)] hover:text-red-400 font-medium px-2 py-1 flex-shrink-0">
-                      Clear
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => logoRef.current?.click()} className="w-full mt-1 text-center py-2 border border-dashed border-[var(--border-2)] rounded-lg text-xs text-[var(--text-3)] hover:text-[var(--text-2)] hover:border-[var(--border-3)] transition-all">
-                    + Upload Logo
-                  </button>
-                )}
-                <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], "tsp_logo", setHasLogo)} />
+                <input ref={logoRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], "tsp_logo", setHasLogo)} />
               </div>
 
-              {/* Signature Card */}
-              <div className="flex flex-col gap-2 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)" }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[var(--text-2)]">Authorized Signature</span>
-                  <span className={clsx("font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded",
-                    hasSign ? "bg-[var(--green)]/10 text-[var(--green)]" : "bg-[var(--yellow)]/10 text-[var(--yellow)]"
-                  )}>
-                    {hasSign ? "Active" : "Missing"}
-                  </span>
+              <div className="p-3 rounded-xl border border-[var(--border)] flex flex-col items-center justify-center text-center">
+                {hasSign 
+                  ? <div className="text-xs text-[var(--green)]">✅ Sign Uploaded</div>
+                  : <div className="text-[10px] text-[var(--yellow)]">⚠️ Missing Signature</div>}
+                <div className="flex gap-2 w-full mt-2">
+                  <Btn variant="outline" size="sm" onClick={() => signRef.current?.click()} className="flex-1">
+                    {hasSign ? "Update Sign" : "Upload Sign"}
+                  </Btn>
+                  {hasSign && (
+                    <Btn variant="ghost" size="sm" onClick={() => handleClear("tsp_sign", setHasSign)}>Clear</Btn>
+                  )}
                 </div>
-                {hasSign ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 rounded bg-white p-1 text-center border border-[var(--border)] overflow-hidden">
-                      <img src={localStorage.getItem("tsp_sign") ?? ""} alt="Sign" className="h-8 object-contain mx-auto" />
-                    </div>
-                    <button onClick={() => handleClear("tsp_sign", setHasSign)} className="text-xs text-[var(--red)] hover:text-red-400 font-medium px-2 py-1 flex-shrink-0">
-                      Clear
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => signRef.current?.click()} className="w-full mt-1 text-center py-2 border border-dashed border-[var(--border-2)] rounded-lg text-xs text-[var(--text-3)] hover:text-[var(--text-2)] hover:border-[var(--border-3)] transition-all">
-                    + Upload Signature
-                  </button>
-                )}
-                <input ref={signRef} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], "tsp_sign", setHasSign)} />
+                <input ref={signRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0], "tsp_sign", setHasSign)} />
               </div>
             </div>
             <div className="text-[10px] text-[var(--text-3)] mt-3.5 leading-relaxed">

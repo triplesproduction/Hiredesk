@@ -46,6 +46,28 @@ DROP POLICY IF EXISTS "Allow public update" ON public.candidates;
 CREATE POLICY "Allow update for authenticated admins" ON public.candidates 
   FOR UPDATE TO authenticated USING (true);
 
-DROP POLICY IF EXISTS "Allow public delete" ON public.candidates;
+DROP POLICY IF EXISTS "Allow delete for authenticated admins" ON public.candidates;
 CREATE POLICY "Allow delete for authenticated admins" ON public.candidates 
   FOR DELETE TO authenticated USING (true);
+
+-- 5. Create storage buckets
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('resumes', 'resumes', true)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('brand-assets', 'brand-assets', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 6. Setup storage policies (allow public read/write for simplicity since this is an admin app)
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Insert" ON storage.objects;
+CREATE POLICY "Public Insert" ON storage.objects FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public Update" ON storage.objects;
+CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Public Delete" ON storage.objects;
+CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (true);
