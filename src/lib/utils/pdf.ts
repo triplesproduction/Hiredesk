@@ -31,7 +31,30 @@ export async function extractTextFromPDF(file: File): Promise<string> {
       pageNumbers.map(async (num) => {
         const page = await pdf!.getPage(num);
         const textContent = await page.getTextContent();
-        const text = textContent.items.map((item: any) => item.str).join(" ");
+        
+        let lastY = -1;
+        const lines: string[] = [];
+        let currentLine: string[] = [];
+
+        for (const item of textContent.items as any[]) {
+          if (item.str === undefined) continue;
+          const y = item.transform?.[5];
+          
+          // If y-coordinate has changed significantly (more than 3 units), push the last line and start a new one
+          if (lastY !== -1 && Math.abs(y - lastY) > 3) {
+            lines.push(currentLine.join(" ").trim());
+            currentLine = [item.str];
+          } else {
+            currentLine.push(item.str);
+          }
+          lastY = y;
+        }
+        
+        if (currentLine.length > 0) {
+          lines.push(currentLine.join(" ").trim());
+        }
+
+        const text = lines.filter(Boolean).join("\n");
         // Release page resources from the internal PDF.js render cache
         page.cleanup();
         return text;

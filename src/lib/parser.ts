@@ -48,15 +48,21 @@ function extractName(text: string, filename: string): string {
   }
 
   // Strategy 3: First line of text — pdfjs often puts the name at the very top
-  // Grab the first non-empty line and validate it looks like a name
+  // Grab the first few lines and check if the first segment looks like a name
   const firstLines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
-  for (const line of firstLines.slice(0, 5)) {
-    // Must be 2–4 words, each starting with capital, no digits/symbols
-    const words = line.split(/\s+/);
+  const skipKeywords = /resume|cv|curriculum|vitae|summary|profile|page/i;
+  for (const line of firstLines.slice(0, 6)) {
+    if (skipKeywords.test(line)) continue;
+    
+    // Split by common header separators like |, - or ,
+    const parts = line.split(/\s*[\|\-,]\s*/);
+    const firstSegment = parts[0].trim();
+    
+    const words = firstSegment.split(/\s+/);
     if (words.length >= 2 && words.length <= 4
-      && words.every(w => /^[A-Z][a-zA-Z'-]{1,}$/.test(w))
-      && line.length < 50) {
-      return line;
+      && words.every(w => /^[A-Z][a-zA-Z'\-]*\.?$/.test(w))
+      && firstSegment.length > 3 && firstSegment.length < 40) {
+      return firstSegment;
     }
   }
 
