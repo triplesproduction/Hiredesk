@@ -32,7 +32,7 @@ export default function RolesGrid() {
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {roles.map(r => {
           const pct = totalCandidates > 0 ? Math.round(r.count / totalCandidates * 100) : 0;
           const avgScore = candidates.filter(c => c.roleId === r.id).reduce((a, c) => a + c.score.total, 0) / (r.count || 1);
