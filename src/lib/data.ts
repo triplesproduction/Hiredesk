@@ -38,8 +38,7 @@ const FIRSTNAMES= ["Aarav","Priya","Rohit","Sneha","Arjun","Neha","Vikram","Anan
 const LASTNAMES = ["Sharma","Patel","Singh","Kumar","Gupta","Verma","Mehta","Shah","Joshi","Nair","Iyer","Reddy","Bose","Khanna","Malhotra","Kapoor","Desai","Pillai","Rao","Agarwal"];
 const STATUSES: Candidate["status"][] = ["new","new","new","review","review","approved","rejected"];
 
-let _counter = 1;
-function uid() { return String(_counter++); }
+function uid() { return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36); }
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random()*arr.length)]; }
 function pickN<T>(arr: T[], n: number): T[] { return [...arr].sort(()=>Math.random()-.5).slice(0,n); }
 
