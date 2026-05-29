@@ -29,24 +29,49 @@ export async function getDBCandidates(): Promise<Candidate[]> {
 export async function insertDBCandidate(c: Candidate): Promise<void> {
   const { error } = await supabase.from("candidates").insert(c);
   if (error) {
-    console.error("Error inserting candidate to Supabase:", error);
-    throw error;
+    // If it's a missing column error (Postgres code 42703), retry without extraction fields
+    if (error.code === "42703" || error.message?.includes("column")) {
+      console.warn("[Supabase Sync] Database is missing name extraction columns. Retrying candidate insert without them...");
+      const { extractionSource, extractionConfidence, extractionMetadata, ...sanitized } = c as any;
+      const { error: retryError } = await supabase.from("candidates").insert(sanitized);
+      if (retryError) throw retryError;
+    } else {
+      console.error("Error inserting candidate to Supabase:", error);
+      throw error;
+    }
   }
 }
 
 export async function insertDBCandidates(candidates: Candidate[]): Promise<void> {
   const { error } = await supabase.from("candidates").insert(candidates);
   if (error) {
-    console.error("Error inserting bulk candidates to Supabase:", error);
-    throw error;
+    if (error.code === "42703" || error.message?.includes("column")) {
+      console.warn("[Supabase Sync] Database is missing name extraction columns. Retrying bulk insert without them...");
+      const sanitizedCandidates = candidates.map(c => {
+        const { extractionSource, extractionConfidence, extractionMetadata, ...rest } = c as any;
+        return rest;
+      });
+      const { error: retryError } = await supabase.from("candidates").insert(sanitizedCandidates);
+      if (retryError) throw retryError;
+    } else {
+      console.error("Error inserting bulk candidates to Supabase:", error);
+      throw error;
+    }
   }
 }
 
 export async function updateDBCandidate(id: string, patch: Partial<Candidate>): Promise<void> {
   const { error } = await supabase.from("candidates").update(patch).eq("id", id);
   if (error) {
-    console.error("Error updating candidate in Supabase:", error);
-    throw error;
+    if (error.code === "42703" || error.message?.includes("column")) {
+      console.warn("[Supabase Sync] Database is missing name extraction columns. Retrying candidate update without them...");
+      const { extractionSource, extractionConfidence, extractionMetadata, ...sanitizedPatch } = patch as any;
+      const { error: retryError } = await supabase.from("candidates").update(sanitizedPatch).eq("id", id);
+      if (retryError) throw retryError;
+    } else {
+      console.error("Error updating candidate in Supabase:", error);
+      throw error;
+    }
   }
 }
 

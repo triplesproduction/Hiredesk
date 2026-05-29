@@ -29,6 +29,12 @@ export interface Candidate {
   appliedAt: string;
   createdAt: string;
   note: string;
+  extractionSource?: string;
+  extractionConfidence?: number;
+  extractionMetadata?: {
+    sourceRankings: Array<{ source: string; name: string; confidence: number }>;
+    ocrUsed: boolean;
+  };
 }
 
 export interface Role {
