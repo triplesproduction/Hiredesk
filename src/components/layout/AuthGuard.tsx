@@ -8,12 +8,22 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [ok, setOk] = useState(false);
 
   useEffect(() => {
-    const auth = localStorage.getItem("tsp_auth");
-    if (!auth && pathname !== "/login") {
-      router.replace("/login");
-    } else {
-      setOk(true);
+    async function checkAuth() {
+      if (pathname === "/login") {
+        setOk(true);
+        return;
+      }
+      const authFlag = localStorage.getItem("tsp_auth");
+      const { data } = await import("@/lib/supabase").then(m => m.supabase.auth.getSession());
+      
+      if (!authFlag || !data.session) {
+        localStorage.removeItem("tsp_auth"); // Clear invalid flag
+        router.replace("/login");
+      } else {
+        setOk(true);
+      }
     }
+    checkAuth();
   }, [pathname, router]);
 
   if (!ok) return (
