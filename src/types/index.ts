@@ -36,6 +36,16 @@ export interface Candidate {
     ocrUsed: boolean;
     transformations?: string[];
     rejectedCandidates?: Array<{ name: string; source: string; reason: string }>;
+    firstPageLines?: Array<{
+      text: string;
+      fontSize: number;
+      y: number;
+      x: number;
+      width: number;
+      height?: number;
+      fontFamily?: string;
+      isBold?: boolean;
+    }>;
   };
 }
 

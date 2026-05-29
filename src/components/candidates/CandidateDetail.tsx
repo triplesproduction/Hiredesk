@@ -354,6 +354,42 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
                         </div>
                       </div>
                     )}
+
+                    {/* Visual Layout Bounding Box Inspector */}
+                    {c.extractionMetadata.firstPageLines && c.extractionMetadata.firstPageLines.length > 0 && (
+                      <div className="mt-3">
+                        <span className="text-[var(--text-3)] font-bold block mb-2.5 uppercase tracking-wide text-[10px]">PDF Layout Bounding Boxes (Page 1):</span>
+                        <div className="flex flex-col gap-1.5 max-h-[180px] overflow-y-auto pr-1">
+                          <div className="grid grid-cols-5 gap-1 text-[9px] font-bold text-[var(--text-3)] pb-1.5 border-b border-white/5 uppercase tracking-wide">
+                            <span className="col-span-2">Text Content</span>
+                            <span className="text-right">Size</span>
+                            <span className="text-right">Pos X</span>
+                            <span className="text-right">Pos Y</span>
+                          </div>
+                          {c.extractionMetadata.firstPageLines.map((line, idx) => {
+                            const isHeading = line.fontSize >= 12;
+                            const isBold = !!line.isBold;
+                            const tooltip = `${line.text}\nFont: ${line.fontFamily || "Unknown"}\nBold: ${isBold ? "Yes" : "No"}\nWidth: ${Math.round(line.width || 0)}px`;
+                            return (
+                              <div key={idx} className={clsx(
+                                "grid grid-cols-5 gap-1 p-2 rounded-lg border text-[9.5px]",
+                                isHeading 
+                                  ? "bg-amber-500/5 border-amber-500/15 text-amber-100 font-semibold" 
+                                  : "bg-black/30 border-white/5 text-zinc-300 font-mono"
+                              )} title={tooltip}>
+                                <span className="col-span-2 truncate flex items-center gap-1">
+                                  {isBold && <span className="text-[10px] text-amber-400 font-bold select-none" title="Bold styling detected">★</span>}
+                                  <span className={clsx(isBold && "font-bold text-white")}>{line.text}</span>
+                                </span>
+                                <span className="text-right">{Math.round(line.fontSize)}pt</span>
+                                <span className="text-right">{Math.round(line.x)}</span>
+                                <span className="text-right">{Math.round(line.y)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </details>
               )}
