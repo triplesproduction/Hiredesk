@@ -90,28 +90,23 @@ export async function POST(request: Request) {
     }
 
     if (error) {
+      let friendlyError = error.message;
       if (email === "admin@triplesproduction.com" && password === "TSP@2024") {
-        // Safe programmatic override: Allow local login under correct admin credentials
-        // even if Supabase Auth hits rate limits or email confirmation boundaries.
-        return NextResponse.json({ 
-          success: true, 
-          session: {
-            access_token: "hd_secure_admin_session_token_approved",
-            user: { email: "admin@triplesproduction.com" }
-          },
-          token: "hd_secure_admin_session_token_approved" 
-        });
+        if (error.message === "Email not confirmed") {
+          friendlyError = "Supabase Email Confirmation is active. Please disable 'Confirm email' under Auth Providers in Supabase, or run the SQL seed script to confirm this user.";
+        } else if (error.message === "Invalid login credentials") {
+          friendlyError = "Admin user not found. Please disable 'Confirm email' under Auth Providers in Supabase so we can auto-provision them, or run the SQL seed script.";
+        }
       }
-      return NextResponse.json({ success: false, error: error.message }, { status: 401 });
+      return NextResponse.json({ success: false, error: friendlyError }, { status: 401 });
     }
 
     // Auth succeeded! Return success and session details
     return NextResponse.json({ 
       success: true, 
       session: data.session,
-      token: data.session?.access_token || "hd_secure_admin_session_token_approved" 
+      token: data.session?.access_token
     });
-    
   } catch (err) {
     return NextResponse.json({ success: false, error: "Internal authentication error." }, { status: 500 });
   }

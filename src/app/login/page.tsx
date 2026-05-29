@@ -197,8 +197,120 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="text-xs px-3 py-2.5 rounded-xl font-medium" style={{ color: "var(--red)", background: "rgba(255,68,68,0.06)", border: "1px solid rgba(255,68,68,0.15)" }}>
-                {error}
+              <div className="flex flex-col gap-3">
+                <div className="text-xs px-3 py-2.5 rounded-xl font-medium" style={{ color: "#ff5a5a", background: "rgba(255,90,90,0.06)", border: "1px solid rgba(255,90,90,0.15)" }}>
+                  {error}
+                </div>
+                
+                {/* Premium Troubleshooting Helper panel */}
+                <div className="rounded-xl border border-white/5 bg-zinc-950/60 p-4 text-[11px] leading-relaxed text-zinc-400 flex flex-col gap-3.5 max-h-[220px] overflow-y-auto">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                    <span className="font-bold text-zinc-200 uppercase tracking-widest text-[9px]">Supabase Gateway Assistance</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  </div>
+                  
+                  <div className="flex flex-col gap-2.5 text-left">
+                    <div>
+                      <span className="text-white font-semibold block mb-0.5">Option A: Disable Email Confirmation (Simplest)</span>
+                      <p className="text-zinc-500">
+                        In your Supabase Dashboard, go to <span className="text-zinc-300">Authentication → Providers → Email</span> and turn OFF <span className="text-zinc-300">"Confirm email"</span>. Then retry logging in!
+                      </p>
+                    </div>
+
+                    <div>
+                      <span className="text-white font-semibold block mb-0.5">Option B: Run Direct SQL Seed (Instant)</span>
+                      <p className="text-zinc-500 mb-1.5">
+                        Paste this query into your <span className="text-zinc-300">Supabase SQL Editor</span> and click <span className="text-zinc-300">Run</span> to instantly seed & confirm the admin user:
+                      </p>
+                      <div className="relative">
+                        <pre className="p-2 rounded bg-black text-[9px] font-mono text-zinc-400 overflow-x-auto max-h-[100px] select-all border border-white/5">
+                          {`CREATE EXTENSION IF NOT EXISTS pgcrypto;
+DO $$
+DECLARE
+  user_id UUID;
+BEGIN
+  SELECT id INTO user_id FROM auth.users WHERE email = 'admin@triplesproduction.com';
+  
+  IF user_id IS NULL THEN
+    INSERT INTO auth.users (
+      instance_id, id, aud, role, email, encrypted_password,
+      email_confirmed_at, recovery_sent_at, last_sign_in_at,
+      raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+      confirmation_token, email_change, email_change_token_new, recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'admin@triplesproduction.com',
+      crypt('TSP@2024', gen_salt('bf')),
+      now(), null, null,
+      '{"provider":"email","providers":["email"]}',
+      '{}',
+      now(), now(),
+      '', '', '', ''
+    );
+  ELSE
+    UPDATE auth.users 
+    SET encrypted_password = crypt('TSP@2024', gen_salt('bf')),
+        email_confirmed_at = now()
+    WHERE id = user_id;
+  END IF;
+END $$;`}
+                        </pre>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`CREATE EXTENSION IF NOT EXISTS pgcrypto;
+DO $$
+DECLARE
+  user_id UUID;
+BEGIN
+  SELECT id INTO user_id FROM auth.users WHERE email = 'admin@triplesproduction.com';
+  
+  IF user_id IS NULL THEN
+    INSERT INTO auth.users (
+      instance_id, id, aud, role, email, encrypted_password,
+      email_confirmed_at, recovery_sent_at, last_sign_in_at,
+      raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+      confirmation_token, email_change, email_change_token_new, recovery_token
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      gen_random_uuid(),
+      'authenticated',
+      'authenticated',
+      'admin@triplesproduction.com',
+      crypt('TSP@2024', gen_salt('bf')),
+      now(), null, null,
+      '{"provider":"email","providers":["email"]}',
+      '{}',
+      now(), now(),
+      '', '', '', ''
+    );
+  ELSE
+    UPDATE auth.users 
+    SET encrypted_password = crypt('TSP@2024', gen_salt('bf')),
+        email_confirmed_at = now()
+    WHERE id = user_id;
+  END IF;
+END $$;`);
+                            alert("SQL query copied to clipboard!");
+                          }}
+                          className="absolute right-2 top-2 px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[8px] text-zinc-300 font-bold uppercase transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-white font-semibold block mb-0.5">Option C: Add Service Role Key</span>
+                      <p className="text-zinc-500">
+                        Add <span className="font-mono text-zinc-300">SUPABASE_SERVICE_ROLE_KEY</span> to <span className="font-mono text-zinc-300">.env.local</span> to allow automatic admin provisioning.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

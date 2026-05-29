@@ -62,48 +62,128 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const initializedRef = useRef(false);
 
-  // ─── Load strictly from Supabase once on mount ───────────
-  useEffect(() => {
-    async function loadInitialData() {
+  // ─── Stable, Resilient State Hydration ───────────────────
+  const loadInitialData = useCallback(async () => {
+    try {
+      const { getDBCandidates, getDBRoles, getDBContracts, insertDBRoles, insertDBContracts } = await import("@/lib/supabase");
+      
+      console.log("[HireDesk Store] Starting database hydration...");
+      
+      // 1. Resilient Candidates Hydration
+      let dbCandidates: Candidate[] = [];
       try {
-        const { getDBCandidates, getDBRoles, getDBContracts, insertDBRoles, insertDBContracts } = await import("@/lib/supabase");
-        
-        // Concurrently fetch all cloud state
-        const [dbCandidates, dbRoles, dbContracts] = await Promise.all([
-          getDBCandidates(),
-          getDBRoles(),
-          getDBContracts(),
-        ]);
-        
+        dbCandidates = await getDBCandidates();
         setCandidatesRaw(dbCandidates);
-        
-        // If roles table is empty, seed it with defaults and save to DB
+        console.log(`[HireDesk Store] Hydrated ${dbCandidates.length} candidates from database.`);
+      } catch (candidatesErr: any) {
+        console.error("[HireDesk Store] Failed to load candidates from database:", candidatesErr);
+      }
+
+      // 2. Resilient Roles Hydration
+      let dbRoles: Role[] = [];
+      let rolesLoaded = false;
+      try {
+        dbRoles = await getDBRoles();
+        rolesLoaded = true;
+      } catch (rolesErr: any) {
+        if (rolesErr?.code === "PGRST205") {
+          console.warn(
+            "[HireDesk Store] Supabase 'roles' table not found. Falling back to default roles. " +
+            "Please run the roles schema migration in your Supabase SQL editor to enable persistent custom roles."
+          );
+        } else {
+          console.error("[HireDesk Store] Failed to load roles from database:", rolesErr);
+        }
+      }
+
+      if (rolesLoaded) {
         if (dbRoles.length === 0) {
           const defaultRoles = computeRoleCounts(dbCandidates, DEFAULT_ROLES);
           setRolesRaw(defaultRoles);
-          insertDBRoles(defaultRoles).catch(console.error);
+          insertDBRoles(defaultRoles).catch(err => 
+            console.error("[HireDesk Store] Failed to seed default roles to Supabase:", err)
+          );
         } else {
           setRolesRaw(computeRoleCounts(dbCandidates, dbRoles));
         }
+      } else {
+        setRolesRaw(computeRoleCounts(dbCandidates, DEFAULT_ROLES));
+      }
 
-        // If contracts table is empty, seed it with defaults and save to DB
+      // 3. Resilient Contracts Hydration
+      let dbContracts: Contract[] = [];
+      let contractsLoaded = false;
+      try {
+        dbContracts = await getDBContracts();
+        contractsLoaded = true;
+      } catch (contractsErr: any) {
+        if (contractsErr?.code === "PGRST205") {
+          console.warn(
+            "[HireDesk Store] Supabase 'contracts' table not found. Falling back to default contract templates. " +
+            "Please run the contracts schema migration in your Supabase SQL editor to enable persistent custom contracts."
+          );
+        } else {
+          console.error("[HireDesk Store] Failed to load contracts from database:", contractsErr);
+        }
+      }
+
+      if (contractsLoaded) {
         if (dbContracts.length === 0) {
           const defaultContracts = getContractTemplates();
           setContracts(defaultContracts);
-          insertDBContracts(defaultContracts).catch(console.error);
+          insertDBContracts(defaultContracts).catch(err =>
+            console.error("[HireDesk Store] Failed to seed default contracts to Supabase:", err)
+          );
         } else {
           setContracts(dbContracts);
         }
-        
-      } catch (e) {
-        console.error("Failed to hydrate from Supabase:", e);
-      } finally {
-        initializedRef.current = true;
+      } else {
+        setContracts(getContractTemplates());
       }
+
+    } catch (e) {
+      console.error("[HireDesk Store] Critical error during database state hydration:", e);
+    } finally {
+      initializedRef.current = true;
+    }
+  }, []);
+
+  // ─── Setup Supabase Auth Listener for Dynamic Hydration ───
+  useEffect(() => {
+    let sub: any = null;
+
+    async function initAuthAndHydrate() {
+      const { supabase } = await import("@/lib/supabase");
+
+      // Initial load attempt immediately
+      await loadInitialData();
+
+      // Listen to auth events to handle sign-in, token refresh, and sign-out
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log(`[HireDesk Auth] Event Triggered: ${event}`);
+        
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          console.log("[HireDesk Auth] User session active. Re-hydrating cloud state...");
+          loadInitialData();
+        } else if (event === "SIGNED_OUT") {
+          console.log("[HireDesk Auth] User logged out. Clearing sensitive client state.");
+          setCandidatesRaw([]);
+          setRolesRaw(computeRoleCounts([], DEFAULT_ROLES));
+          setContracts(getContractTemplates());
+        }
+      });
+      
+      sub = data?.subscription;
     }
 
-    loadInitialData();
-  }, []);
+    initAuthAndHydrate();
+
+    return () => {
+      if (sub) {
+        sub.unsubscribe();
+      }
+    };
+  }, [loadInitialData]);
 
   // ─── Mutation helpers ───────────────────────────────────────────────────────
   const setCandidates = useCallback((c: Candidate[]) => {
