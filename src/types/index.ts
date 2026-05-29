@@ -34,6 +34,8 @@ export interface Candidate {
   extractionMetadata?: {
     sourceRankings: Array<{ source: string; name: string; confidence: number }>;
     ocrUsed: boolean;
+    transformations?: string[];
+    rejectedCandidates?: Array<{ name: string; source: string; reason: string }>;
   };
 }
 

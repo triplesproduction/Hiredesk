@@ -10,6 +10,7 @@ export interface PDFTextLine {
   fontSize: number;
   y: number;
   x: number;
+  width: number;
 }
 
 export interface PDFParsedResult {
@@ -133,6 +134,7 @@ export async function extractTextAndMetaFromPDF(file: File): Promise<PDFParsedRe
             const y = item.transform?.[5];
             const x = item.transform?.[4];
             const fontSize = Math.abs(item.transform?.[3]) || Math.abs(item.transform?.[0]) || 10;
+            const width = item.width || (item.str.length * fontSize * 0.45);
 
             if (currentY !== -1 && Math.abs(y - currentY) > 4) {
               // Commit the previous line
@@ -141,14 +143,15 @@ export async function extractTextAndMetaFromPDF(file: File): Promise<PDFParsedRe
                 const maxFontSize = Math.max(...currentLineItems.map(i => i.fontSize));
                 const avgY = currentLineItems.reduce((acc, i) => acc + i.y, 0) / currentLineItems.length;
                 const minX = Math.min(...currentLineItems.map(i => i.x));
+                const totalWidth = currentLineItems.reduce((acc, i) => acc + i.width, 0);
                 
                 if (text) {
-                  firstPageLines.push({ text, fontSize: maxFontSize, y: avgY, x: minX });
+                  firstPageLines.push({ text, fontSize: maxFontSize, y: avgY, x: minX, width: totalWidth });
                 }
               }
-              currentLineItems = [{ str: item.str, y, x, fontSize }];
+              currentLineItems = [{ str: item.str, y, x, fontSize, width }];
             } else {
-              currentLineItems.push({ str: item.str, y, x, fontSize });
+              currentLineItems.push({ str: item.str, y, x, fontSize, width });
             }
             currentY = y;
           }
@@ -158,9 +161,10 @@ export async function extractTextAndMetaFromPDF(file: File): Promise<PDFParsedRe
             const maxFontSize = Math.max(...currentLineItems.map(i => i.fontSize));
             const avgY = currentLineItems.reduce((acc, i) => acc + i.y, 0) / currentLineItems.length;
             const minX = Math.min(...currentLineItems.map(i => i.x));
+            const totalWidth = currentLineItems.reduce((acc, i) => acc + i.width, 0);
             
             if (text) {
-              firstPageLines.push({ text, fontSize: maxFontSize, y: avgY, x: minX });
+              firstPageLines.push({ text, fontSize: maxFontSize, y: avgY, x: minX, width: totalWidth });
             }
           }
         }

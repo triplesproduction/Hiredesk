@@ -53,9 +53,17 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
     });
   }, [c]);
 
+  // Is the name parser confidence low? (< 70)
+  const isLowConfidence = c.extractionConfidence !== undefined && c.extractionConfidence < 70;
+
   function handleSave() {
     updateCandidate(c.id, editState);
     setIsEditing(false);
+  }
+
+  function handleInstantNameCorrection(name: string) {
+    setEditState(prev => ({ ...prev, name }));
+    updateCandidate(c.id, { name });
   }
 
   function handleDelete() {
@@ -68,7 +76,7 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
   return (
     // Backdrop
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
-      style={{ background: "rgba(0,0,0,0.78)", backdropFilter: "blur(12px)" }}
+      style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(14px)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
 
       {/* Card */}
@@ -79,8 +87,12 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 pb-4 gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-4 flex-1">
             {/* Avatar */}
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-lg sm:text-xl font-bold flex-shrink-0"
-              style={{ background: "var(--glass-3)", border: "1px solid var(--border-2)", color: "var(--text)" }}>
+            <div className={clsx(
+              "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-lg sm:text-xl font-bold flex-shrink-0 border transition-colors duration-300",
+              isLowConfidence 
+                ? "border-amber-500/30 bg-amber-500/5 text-amber-500" 
+                : "border-[var(--border-2)] bg-white/5 text-white"
+            )}>
               {(editState.name?.[0] ?? c.name?.[0] ?? "?").toUpperCase()}
             </div>
             
@@ -93,6 +105,18 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
                   className="w-full max-w-sm bg-black/60 border border-white/10 rounded-xl px-3 py-1.5 text-base font-bold text-white outline-none focus:border-white/30"
                   placeholder="Candidate Name"
                 />
+              ) : isLowConfidence ? (
+                /* Instant low confidence fallback form field directly in the header */
+                <div className="flex flex-col gap-1.5">
+                  <div className="text-[10px] uppercase font-bold tracking-widest text-amber-500/80">Suggested Candidate Name</div>
+                  <input
+                    type="text"
+                    value={editState.name || ""}
+                    onChange={e => handleInstantNameCorrection(e.target.value)}
+                    className="w-full max-w-sm bg-amber-500/5 border border-amber-500/30 hover:border-amber-500/50 focus:border-amber-500 rounded-xl px-3 py-1 text-sm font-bold text-amber-100 outline-none transition-all"
+                    placeholder="Enter Candidate Name"
+                  />
+                </div>
               ) : (
                 <div className="text-lg sm:text-xl font-bold tracking-tight text-white truncate">
                   {c.name || "Unknown Candidate"}
@@ -118,7 +142,7 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
               >
                 💾 Save
               </button>
-            ) : (
+            ) : !isLowConfidence && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="text-xs font-semibold px-4 py-2 rounded-lg transition-all text-white bg-[var(--glass-2)] hover:bg-[var(--glass-3)] border border-[var(--border)] active:scale-95"
@@ -155,14 +179,14 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
               {c.extractionConfidence !== undefined && (
                 <div className="flex flex-col gap-3">
                   {/* Alert panel for Low Confidence */}
-                  {c.extractionConfidence < 70 && (
+                  {isLowConfidence && (
                     <div className="flex items-start gap-3 p-4 rounded-2xl text-xs font-semibold leading-relaxed border"
-                      style={{ background: "rgba(255,140,0,0.06)", borderColor: "rgba(255,140,0,0.25)", color: "#ff8c00" }}>
+                      style={{ background: "rgba(245,158,11,0.06)", borderColor: "rgba(245,158,11,0.28)", color: "#f59e0b" }}>
                       <span className="text-lg leading-none mt-0.5">⚠️</span>
                       <div className="flex-1">
-                        <div className="font-extrabold text-[13px]">Low Confidence Name Detection ({c.extractionConfidence}%)</div>
+                        <div className="font-extrabold text-[13px] uppercase tracking-wide">Low Confidence Name Detection ({c.extractionConfidence}%)</div>
                         <div className="text-zinc-400 mt-1 leading-normal font-medium">
-                          The parser extracted this candidate name via <strong>{c.extractionSource}</strong> with low confidence. Please verify or manually correct the name if it is wrong.
+                          The parser resolved this suggested name via <strong>{c.extractionSource}</strong> with low confidence. Please verify or correct the candidate name using the form input field above.
                         </div>
                       </div>
                     </div>
@@ -176,7 +200,7 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
                     </span>
                     <span className={clsx(
                       "px-2.5 py-0.5 rounded font-bold tracking-wide",
-                      c.extractionConfidence >= 75 ? "text-[var(--green)] bg-[var(--green)]/10" : "text-[var(--yellow)] bg-[var(--yellow)]/10"
+                      c.extractionConfidence >= 70 ? "text-[var(--green)] bg-[var(--green)]/10" : "text-amber-500 bg-amber-500/10"
                     )}>
                       {c.extractionConfidence}% Confidence
                     </span>
@@ -264,7 +288,7 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
                     <span className="transition-transform group-open:rotate-180 text-xs">▼</span>
                   </summary>
                   
-                  <div className="mt-4 flex flex-col gap-3.5 text-xs leading-relaxed border-t border-white/5 pt-4">
+                  <div className="mt-4 flex flex-col gap-4 text-xs leading-relaxed border-t border-white/5 pt-4">
                     <div className="flex justify-between items-center bg-black/20 p-2.5 rounded-lg border border-white/5">
                       <span className="text-[var(--text-3)] font-medium">OCR Fallback Engine:</span>
                       <span className={clsx("font-bold px-2 py-0.5 rounded", c.extractionMetadata.ocrUsed ? "text-[var(--yellow)] bg-[var(--yellow)]/10" : "text-zinc-500 bg-zinc-900")}>
@@ -272,18 +296,19 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
                       </span>
                     </div>
                     
+                    {/* Multi-Source Candidates list */}
                     <div>
                       <span className="text-[var(--text-3)] font-bold block mb-2.5 uppercase tracking-wide text-[10px]">Multi-Source Name Rankings:</span>
-                      <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto pr-1">
+                      <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto pr-1">
                         {c.extractionMetadata.sourceRankings && c.extractionMetadata.sourceRankings.length > 0 ? (
                           c.extractionMetadata.sourceRankings.map((rank, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
+                            <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-black/40 border border-white/5">
                               <div className="flex flex-col gap-0.5">
-                                <span className="font-bold text-white text-[13px]">{rank.name}</span>
-                                <span className="text-[10px] text-[var(--text-3)] font-medium">{rank.source}</span>
+                                <span className="font-bold text-white text-[12px]">{rank.name}</span>
+                                <span className="text-[9px] text-[var(--text-3)] font-medium">{rank.source}</span>
                               </div>
                               <span className={clsx(
-                                "font-bold text-xs px-2 py-0.5 rounded",
+                                "font-bold text-[10px] px-2 py-0.5 rounded",
                                 rank.confidence >= 70 ? "text-[var(--green)] bg-[var(--green)]/10" : rank.confidence >= 40 ? "text-[var(--yellow)] bg-[var(--yellow)]/10" : "text-[var(--red)] bg-[var(--red)]/10"
                               )}>
                                 {rank.confidence}% Score
@@ -291,10 +316,44 @@ export default function CandidateDetail({ candidate: c, onClose }: Props) {
                             </div>
                           ))
                         ) : (
-                          <div className="text-[var(--text-3)] italic text-center py-4 bg-black/20 rounded-xl border border-dashed border-white/5">No candidates extracted</div>
+                          <div className="text-[var(--text-3)] italic text-center py-2 bg-black/20 rounded-xl border border-dashed border-white/5">No candidates extracted</div>
                         )}
                       </div>
                     </div>
+
+                    {/* Applied Normalizations & Splits */}
+                    {c.extractionMetadata.transformations && c.extractionMetadata.transformations.length > 0 && (
+                      <div>
+                        <span className="text-[var(--text-3)] font-bold block mb-2.5 uppercase tracking-wide text-[10px]">Applied Normalizations:</span>
+                        <div className="flex flex-col gap-1.5 max-h-[120px] overflow-y-auto pr-1 font-mono text-[9px] text-zinc-300">
+                          {c.extractionMetadata.transformations.map((t, idx) => (
+                            <div key={idx} className="p-2 rounded bg-black/40 border border-white/5 leading-normal">
+                              {t}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rejected Candidates */}
+                    {c.extractionMetadata.rejectedCandidates && c.extractionMetadata.rejectedCandidates.length > 0 && (
+                      <div>
+                        <span className="text-[var(--text-3)] font-bold block mb-2.5 uppercase tracking-wide text-[10px]">Rejected Candidates:</span>
+                        <div className="flex flex-col gap-2 max-h-[150px] overflow-y-auto pr-1">
+                          {c.extractionMetadata.rejectedCandidates.map((rc, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-black/40 border border-white/5">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="font-bold text-zinc-400 line-through text-[12px]">{rc.name}</span>
+                                <span className="text-[9px] text-[var(--text-3)] font-medium">{rc.source}</span>
+                              </div>
+                              <span className="text-[9px] text-[var(--red)] font-semibold bg-[var(--red)]/10 px-2 py-0.5 rounded leading-none">
+                                {rc.reason}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </details>
               )}
