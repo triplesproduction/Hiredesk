@@ -62,41 +62,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const initializedRef = useRef(false);
 
-  // ─── Load from Supabase (fallback to localStorage) once on mount ───────────
+  // ─── Load strictly from Supabase once on mount ───────────
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const storedRoles = localStorage.getItem("tsp_roles");
-        const storedContracts = localStorage.getItem("tsp_contracts");
+        const { getDBCandidates, getDBRoles, getDBContracts, insertDBRoles, insertDBContracts } = await import("@/lib/supabase");
         
-        let finalCandidates: Candidate[] = [];
-        let finalRoles: Role[];
-
-        // Try to fetch from Supabase first
-        try {
-          const { getDBCandidates } = await import("@/lib/supabase");
-          finalCandidates = await getDBCandidates();
-          console.log(`Successfully synced ${finalCandidates.length} candidates from Supabase.`);
-        } catch (dbError) {
-          console.warn("Supabase fetch failed, falling back to localStorage:", dbError);
-          const storedCandidates = localStorage.getItem("tsp_candidates");
-          if (storedCandidates) {
-            finalCandidates = JSON.parse(storedCandidates).filter((c: Candidate) => c.resumeText);
-          }
+        // Concurrently fetch all cloud state
+        const [dbCandidates, dbRoles, dbContracts] = await Promise.all([
+          getDBCandidates(),
+          getDBRoles(),
+          getDBContracts(),
+        ]);
+        
+        setCandidatesRaw(dbCandidates);
+        
+        // If roles table is empty, seed it with defaults and save to DB
+        if (dbRoles.length === 0) {
+          const defaultRoles = computeRoleCounts(dbCandidates, DEFAULT_ROLES);
+          setRolesRaw(defaultRoles);
+          insertDBRoles(defaultRoles).catch(console.error);
+        } else {
+          setRolesRaw(computeRoleCounts(dbCandidates, dbRoles));
         }
 
-        finalRoles = computeRoleCounts(finalCandidates, DEFAULT_ROLES);
-
-        setCandidatesRaw(finalCandidates);
-        setRolesRaw(finalRoles);
-
-        if (storedContracts) {
-          setContracts(JSON.parse(storedContracts));
+        // If contracts table is empty, seed it with defaults and save to DB
+        if (dbContracts.length === 0) {
+          const defaultContracts = getContractTemplates();
+          setContracts(defaultContracts);
+          insertDBContracts(defaultContracts).catch(console.error);
+        } else {
+          setContracts(dbContracts);
         }
+        
       } catch (e) {
-        console.error("Failed to hydrate:", e);
-        setCandidatesRaw([]);
-        setRolesRaw(computeRoleCounts([], DEFAULT_ROLES));
+        console.error("Failed to hydrate from Supabase:", e);
       } finally {
         initializedRef.current = true;
       }
@@ -105,40 +105,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     loadInitialData();
   }, []);
 
-  // ─── Debounced localStorage writes (300ms) ──────────────────────────────────
-  // Using refs so debounced callbacks always see latest values without re-creating
-  const candidatesRef = useRef(candidates);
-  const rolesRef = useRef(roles);
-  const contractsRef = useRef(contracts);
-  candidatesRef.current = candidates;
-  rolesRef.current = roles;
-  contractsRef.current = contracts;
-
-  const persistAll = useMemo(() =>
-    debounce(() => {
-      if (!initializedRef.current) return;
-      try {
-        localStorage.setItem("tsp_candidates", JSON.stringify(candidatesRef.current));
-        localStorage.setItem("tsp_roles", JSON.stringify(rolesRef.current));
-        localStorage.setItem("tsp_contracts", JSON.stringify(contractsRef.current));
-      } catch (e) {
-        console.error("localStorage write failed:", e);
-      }
-    }, 300),
-  []); // stable: created once
-
-  useEffect(() => {
-    if (!initializedRef.current) return;
-    persistAll();
-  }, [candidates, roles, contracts, persistAll]);
-
   // ─── Mutation helpers ───────────────────────────────────────────────────────
   const setCandidates = useCallback((c: Candidate[]) => {
     setCandidatesRaw(c);
     setRolesRaw(prev => computeRoleCounts(c, prev));
   }, []);
 
-  const setRoles = useCallback((r: Role[]) => setRolesRaw(r), []);
+  const setRoles = useCallback((r: Role[]) => {
+    setRolesRaw(r);
+    import("@/lib/supabase").then(db => db.insertDBRoles(r)).catch(console.error);
+  }, []);
 
   const addCandidate = useCallback((c: Candidate) => {
     setCandidatesRaw(prev => {
@@ -215,10 +191,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const addRole = useCallback((r: Role) => {
     setRolesRaw(prev => [...prev, r]);
+    import("@/lib/supabase").then(db => db.insertDBRoles([r])).catch(console.error);
   }, []);
 
   const updateContract = useCallback((id: string, body: string) => {
     setContracts(prev => prev.map(c => c.id === id ? { ...c, body } : c));
+    import("@/lib/supabase").then(db => db.updateDBContract(id, { body })).catch(console.error);
   }, []);
 
   const setFilters = useCallback(
@@ -251,8 +229,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
   const exportCSV = useCallback(() => {
-    exportCandidatesToCSV(candidatesRef.current);
-  }, []);
+    exportCandidatesToCSV(candidates);
+  }, [candidates]);
 
   // ─── Stable context value (only recreated when slices change) ───────────────
   const value = useMemo<Store>(() => ({

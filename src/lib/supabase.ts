@@ -169,3 +169,49 @@ export async function deleteBrandAsset(key: "tsp_logo" | "tsp_sign"): Promise<vo
     await supabase.storage.from(BRAND_BUCKET).remove([`${key}.${ext}`]);
   }
 }
+
+// ─── ROLES DB ───────────────────────────────────────────────────────────────
+export async function getDBRoles(): Promise<any[]> {
+  const { data, error } = await supabase.from("roles").select("*").order("name", { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function insertDBRoles(roles: any[]): Promise<void> {
+  if (roles.length === 0) return;
+  const { error } = await supabase.from("roles").upsert(roles);
+  if (error) throw error;
+}
+
+export async function updateDBRole(id: string, patch: any): Promise<void> {
+  const { error } = await supabase.from("roles").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteDBRole(id: string): Promise<void> {
+  const { error } = await supabase.from("roles").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─── CONTRACTS DB ───────────────────────────────────────────────────────────
+export async function getDBContracts(): Promise<any[]> {
+  const { data, error } = await supabase.from("contracts").select("*").order("name", { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function insertDBContracts(contracts: any[]): Promise<void> {
+  if (contracts.length === 0) return;
+  const { error } = await supabase.from("contracts").upsert(contracts);
+  if (error) throw error;
+}
+
+export async function updateDBContract(id: string, patch: any): Promise<void> {
+  const { error } = await supabase.from("contracts").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteDBContract(id: string): Promise<void> {
+  const { error } = await supabase.from("contracts").delete().eq("id", id);
+  if (error) throw error;
+}

@@ -71,3 +71,43 @@ CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (true);
 
 DROP POLICY IF EXISTS "Public Delete" ON storage.objects;
 CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (true);
+
+-- 7. Create roles table
+CREATE TABLE IF NOT EXISTS public.roles (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  keywords TEXT[] NOT NULL DEFAULT '{}',
+  count INTEGER NOT NULL DEFAULT 0,
+  "isActive" BOOLEAN NOT NULL DEFAULT true
+);
+
+ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow select for authenticated admins" ON public.roles;
+CREATE POLICY "Allow select for authenticated admins" ON public.roles FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Allow insert for authenticated admins" ON public.roles;
+CREATE POLICY "Allow insert for authenticated admins" ON public.roles FOR INSERT TO authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow update for authenticated admins" ON public.roles;
+CREATE POLICY "Allow update for authenticated admins" ON public.roles FOR UPDATE TO authenticated USING (true);
+DROP POLICY IF EXISTS "Allow delete for authenticated admins" ON public.roles;
+CREATE POLICY "Allow delete for authenticated admins" ON public.roles FOR DELETE TO authenticated USING (true);
+
+-- 8. Create contracts table
+CREATE TABLE IF NOT EXISTS public.contracts (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  icon TEXT NOT NULL,
+  "desc" TEXT NOT NULL,
+  type TEXT NOT NULL,
+  body TEXT NOT NULL
+);
+
+ALTER TABLE public.contracts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow select for authenticated admins" ON public.contracts;
+CREATE POLICY "Allow select for authenticated admins" ON public.contracts FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Allow insert for authenticated admins" ON public.contracts;
+CREATE POLICY "Allow insert for authenticated admins" ON public.contracts FOR INSERT TO authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow update for authenticated admins" ON public.contracts;
+CREATE POLICY "Allow update for authenticated admins" ON public.contracts FOR UPDATE TO authenticated USING (true);
+DROP POLICY IF EXISTS "Allow delete for authenticated admins" ON public.contracts;
+CREATE POLICY "Allow delete for authenticated admins" ON public.contracts FOR DELETE TO authenticated USING (true);
