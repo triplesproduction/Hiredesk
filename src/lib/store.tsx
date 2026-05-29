@@ -155,7 +155,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setRolesRaw(rPrev => computeRoleCounts(next, rPrev));
       return next;
     });
-    import("@/lib/supabase").then(db => db.insertDBCandidates(newOnes)).catch(err => console.error(err));
+    import("@/lib/supabase").then(db => db.insertDBCandidates(newOnes)).catch(err => {
+      console.error(err);
+      alert("Failed to save candidate to database: " + (err?.message || JSON.stringify(err)));
+    });
   }, []);
 
   const updateCandidate = useCallback((id: string, patch: Partial<Candidate>) => {
